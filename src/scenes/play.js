@@ -1,4 +1,4 @@
-import { BULLET, WORLD, WAVES } from '../config.js';
+import { BULLET, WORLD, WAVES, SHIP } from '../config.js';
 import { eachCollision } from '../engine/collision.js';
 import { sprites } from '../render/sprites.js';
 import Ship from '../entities/ship.js';
@@ -27,7 +27,8 @@ export default class Play {
 
   start() {
     this.session.reset();
-    for (const group of [this.enemies, this.lasers, this.bullets, this.powerups, this.particles]) group.clear();
+    for (const group of [this.enemies, this.lasers, this.bullets, this.particles]) group.clear();
+    this.powerups.reset();
     this.ship.reset();
     this.spawnIn = 1;
     this.ended = 0;
@@ -42,7 +43,7 @@ export default class Play {
     if (this.session.over) this.ended += dt;
     else this.#play(dt, input);
 
-    this.enemies.update(dt, { ship: this.ship, bullets: this.bullets, speed: this.session.speedMultiplier });
+    this.enemies.update(dt, { ship: this.ship, bullets: this.bullets, speed: this.session.speedMultiplier, escaped: () => this.#escaped() });
     for (const group of [this.lasers, this.bullets, this.powerups, this.particles]) group.update(dt);
     if (!this.session.over) this.#collide();
     this.shake = Math.max(0, this.shake - dt * 30);
@@ -103,9 +104,10 @@ export default class Play {
       return true;
     });
 
-    eachCollision([this.ship], this.powerups, (ship, powerup) => {
+    const reach = { active: true, x: this.ship.x, y: this.ship.y, radius: SHIP.pickupRadius };
+    eachCollision([reach], this.powerups, (_, powerup) => {
       powerup.active = false;
-      ship.powerUp(powerup.type);
+      this.ship.powerUp(powerup.type);
       this.particles.burst(powerup.x, powerup.y, 'white', 16, 160, 0.4);
       this.events.publish('powerup', powerup.type);
     });
@@ -136,10 +138,16 @@ export default class Play {
     const result = this.session.registerKill(enemy.type);
     this.particles.burst(enemy.x, enemy.y, COLORS_BY_ENEMY[enemy.type], 28, 260, 0.8);
     this.particles.burst(enemy.x, enemy.y, 'white', 8, 140, 0.4);
-    this.powerups.maybeDrop(enemy.x, enemy.y);
+    this.powerups.maybeDrop(enemy.x, enemy.y, this.session.kills);
     this.shake = Math.max(this.shake, enemy.type === 'shooter' ? 10 : 5);
     this.events.publish('kill', { ...result, enemy });
     if (result.extraLife) this.events.publish('extra-life', this.session.lives);
+    if (result.comboUp) this.events.publish('combo', this.session.multiplier);
+  }
+
+  #escaped() {
+    if (this.session.over) return;
+    if (this.session.escape()) this.events.publish('combo-broken');
   }
 
   #hurt() {

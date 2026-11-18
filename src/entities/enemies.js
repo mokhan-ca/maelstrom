@@ -25,8 +25,10 @@ const behaviours = {
     enemy.reload -= dt;
     if (!settled || enemy.reload > 0 || !ship.active) return;
     enemy.reload = fireInterval / speed;
-    const angle = Math.atan2(ship.y - enemy.y, ship.x - enemy.x);
-    bullets.fire(enemy.x, enemy.y + 10, Math.cos(angle) * bulletSpeed, Math.sin(angle) * bulletSpeed);
+    const velocity = bulletSpeed * Math.sqrt(speed);
+    const lead = Math.hypot(ship.x - enemy.x, ship.y - enemy.y) / velocity;
+    const angle = Math.atan2(ship.y + ship.vy * lead - enemy.y, ship.x + ship.vx * lead - enemy.x);
+    bullets.fire(enemy.x, enemy.y + 10, Math.cos(angle) * velocity, Math.sin(angle) * velocity);
   },
 };
 
@@ -62,8 +64,13 @@ export default class Enemies {
       enemy.age += dt;
       enemy.flash = Math.max(0, enemy.flash - dt);
       behaviours[enemy.type](enemy, dt, world);
-      if (enemy.y > WORLD.height + enemy.radius * 2) enemy.active = false;
+      if (enemy.y > WORLD.height + enemy.radius * 2) this.#escape(enemy, world);
     }
+  }
+
+  #escape(enemy, world) {
+    enemy.active = false;
+    world.escaped(enemy);
   }
 
   damage(enemy) {

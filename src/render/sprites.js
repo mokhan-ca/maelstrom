@@ -41,6 +41,9 @@ function ship(ctx) {
   path(ctx, [[0, -12], [4, -2], [0, 2], [-4, -2]]);
   ctx.fillStyle = COLORS.white;
   ctx.fill();
+  ctx.beginPath();
+  ctx.arc(0, 0, 3, 0, Math.PI * 2);
+  ctx.fill();
   ctx.fillStyle = COLORS.magenta;
   ctx.fillRect(-14, 14, 5, 4);
   ctx.fillRect(9, 14, 5, 4);

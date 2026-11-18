@@ -16,6 +16,8 @@ export default class Ship {
     this.cooldown = 0;
     this.invulnerable = 0;
     this.powers = { spread: 0, rapid: 0, shield: 0 };
+    this.vx = 0;
+    this.vy = 0;
     this.age = 0;
   }
 
@@ -56,7 +58,7 @@ export default class Ship {
   }
 
   powerUp(type) {
-    this.powers[type] = POWERUPS.duration;
+    this.powers[type] = POWERUPS.durations[type];
   }
 
   draw(ctx) {
@@ -67,7 +69,10 @@ export default class Ship {
   #move(dt, input) {
     const { x, y } = input.axis;
     const drag = input.takeDrag();
-    this.x = clamp(this.x + x * SHIP.speed * dt + drag.x * SHIP.touchSensitivity, this.radius, WORLD.width - this.radius);
-    this.y = clamp(this.y + y * SHIP.speed * dt + drag.y * SHIP.touchSensitivity, this.radius * 3, WORLD.height - SHIP.bottomMargin);
+    const [lastX, lastY] = [this.x, this.y];
+    this.x = clamp(this.x + x * SHIP.speed * dt + drag.x * SHIP.touchSensitivity, SHIP.halfWidth, WORLD.width - SHIP.halfWidth);
+    this.y = clamp(this.y + y * SHIP.speed * dt + drag.y * SHIP.touchSensitivity, SHIP.halfWidth * 3, WORLD.height - SHIP.bottomMargin);
+    this.vx = (this.x - lastX) / dt;
+    this.vy = (this.y - lastY) / dt;
   }
 }

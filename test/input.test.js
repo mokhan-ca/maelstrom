@@ -39,7 +39,7 @@ describe('Input', () => {
     expect(input.consume('confirm')).toBe(false);
   });
 
-  it('converts a drag into world units and fires while touching', () => {
+  it('converts a drag into world units and keeps firing on touch', () => {
     pointerTarget.dispatchEvent(pointer('pointerdown', 100, 100));
     pointerTarget.dispatchEvent(pointer('pointermove', 120, 90));
     expect(input.firing).toBe(true);
@@ -47,6 +47,13 @@ describe('Input', () => {
     expect(input.takeDrag()).toEqual({ x: 10, y: -5 });
     expect(input.takeDrag()).toEqual({ x: 0, y: 0 });
     pointerTarget.dispatchEvent(pointer('pointerup', 120, 90));
+    expect(input.firing).toBe(true);
+  });
+
+  it('fires with a mouse only while the button is held', () => {
+    pointerTarget.dispatchEvent(pointer('pointerdown', 0, 0, { pointerType: 'mouse' }));
+    expect(input.firing).toBe(true);
+    pointerTarget.dispatchEvent(pointer('pointerup', 0, 0, { pointerType: 'mouse' }));
     expect(input.firing).toBe(false);
   });
 
@@ -66,7 +73,7 @@ describe('Input', () => {
   });
 
   it('stops firing when the pointer capture is lost', () => {
-    pointerTarget.dispatchEvent(pointer('pointerdown', 0, 0));
+    pointerTarget.dispatchEvent(pointer('pointerdown', 0, 0, { pointerType: 'mouse' }));
     pointerTarget.dispatchEvent(pointer('lostpointercapture', 0, 0));
     expect(input.firing).toBe(false);
   });

@@ -36,3 +36,32 @@ describe('Play', () => {
     expect(session.score).toBeGreaterThan(0);
   });
 });
+
+describe('Play stakes', () => {
+  it('breaks the combo when an enemy escapes', () => {
+    const session = new Session();
+    const events = new EventAggregator();
+    const play = new Play({ session, events, rng: () => 0.5 });
+    let broken = false;
+    events.subscribe('combo-broken', () => (broken = true));
+    play.start();
+    session.streak = 10;
+    play.enemies.spawn('drifter', 1);
+    const [enemy] = play.enemies;
+    enemy.y = 2000;
+
+    play.update(1 / 60, idle);
+
+    expect(session.multiplier).toBe(1);
+    expect(broken).toBe(true);
+  });
+
+  it('guarantees an early power-up', () => {
+    const session = new Session();
+    const play = new Play({ session, events: new EventAggregator(), rng: () => 0.99 });
+    play.start();
+    session.kills = 8;
+    play.powerups.maybeDrop(100, 100, session.kills);
+    expect([...play.powerups]).toHaveLength(1);
+  });
+});

@@ -107,7 +107,7 @@ export default class Input {
   }
 
   get firing() {
-    return this.isDown(FIRE) || this.pointerDown;
+    return this.isDown(FIRE) || this.pointerDown || this.usedTouch;
   }
 
   takeDrag() {

@@ -27,6 +27,15 @@ export default class Sfx {
       this.#tone({ type: 'square', from: note, to: note, seconds: 0.1, volume: 0.12, delay: index * 0.08 }));
   }
 
+  combo(multiplier) {
+    const note = 440 * 2 ** (multiplier / 6);
+    this.#tone({ type: 'triangle', from: note, to: note * 1.5, seconds: 0.18, volume: 0.2 });
+  }
+
+  comboBroken() {
+    this.#tone({ type: 'square', from: 330, to: 110, seconds: 0.25, volume: 0.12 });
+  }
+
   gameOver() {
     [392, 330, 262, 196].forEach((note, index) =>
       this.#tone({ type: 'sawtooth', from: note, to: note * 0.97, seconds: 0.28, volume: 0.2, delay: index * 0.22 }));

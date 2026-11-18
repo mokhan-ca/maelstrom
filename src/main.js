@@ -95,7 +95,7 @@ const toggleMute = () => {
 const hint = () => {
   if (!input.usedTouch || load('hinted', false)) return;
   const element = $('hint');
-  element.textContent = 'Drag anywhere to fly · hold to fire';
+  element.textContent = 'Drag anywhere to fly · firing is automatic';
   element.hidden = false;
   setTimeout(() => (element.hidden = true), 4000);
   save('hinted', true);
@@ -128,6 +128,14 @@ events.subscribe('powerup', (type) => {
 events.subscribe('extra-life', () => {
   sfx.extraLife();
   hud.toast('Extra life', 1.2);
+});
+events.subscribe('combo', (multiplier) => {
+  sfx.combo(multiplier);
+  hud.toast(`×${multiplier}`, 0.8);
+});
+events.subscribe('combo-broken', () => {
+  sfx.comboBroken();
+  hud.toast('Combo lost', 0.8);
 });
 events.subscribe('wave', (wave) => {
   hud.toast(`Wave ${wave}`);

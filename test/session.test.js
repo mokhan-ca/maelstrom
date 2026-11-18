@@ -39,6 +39,24 @@ describe('Session', () => {
       expect(session.registerKill('drifter').extraLife).toBe(true);
       expect(session.lives).toBe(SHIP.lives + 1);
     });
+
+    it('spaces extra lives further apart each time', () => {
+      session.score = SHIP.extraLifeEvery;
+      session.registerKill('drifter');
+      expect(session.nextExtraLife).toBe(SHIP.extraLifeEvery * 3);
+    });
+
+    it('never exceeds the maximum lives', () => {
+      session.lives = SHIP.maxLives;
+      session.score = SHIP.extraLifeEvery;
+      expect(session.registerKill('drifter').extraLife).toBe(false);
+      expect(session.lives).toBe(SHIP.maxLives);
+    });
+
+    it('announces a multiplier step', () => {
+      session.streak = COMBO.killsPerStep - 1;
+      expect(session.registerKill('drifter').comboUp).toBe(true);
+    });
   });
 
   describe('hitPlayer', () => {
@@ -56,6 +74,18 @@ describe('Session', () => {
     });
   });
 
+  describe('escape', () => {
+    it('breaks the streak', () => {
+      session.streak = COMBO.killsPerStep;
+      expect(session.escape()).toBe(true);
+      expect(session.multiplier).toBe(1);
+    });
+
+    it('says nothing when there was no combo', () => {
+      expect(session.escape()).toBe(false);
+    });
+  });
+
   describe('tick', () => {
     it('advances the wave after the duration', () => {
       expect(session.tick(WAVES.duration - 1)).toBe(false);
@@ -63,7 +93,15 @@ describe('Session', () => {
       expect(session.wave).toBe(2);
     });
 
-    it('advances the wave after enough kills', () => {
+    it('advances the first wave sooner', () => {
+      session.waveKills = WAVES.firstWaveKills;
+      expect(session.tick(0)).toBe(true);
+    });
+
+    it('advances later waves after enough kills', () => {
+      session.wave = 2;
+      session.waveKills = WAVES.killsToAdvance - 1;
+      expect(session.tick(0)).toBe(false);
       session.waveKills = WAVES.killsToAdvance;
       expect(session.tick(0)).toBe(true);
     });
@@ -83,8 +121,9 @@ describe('Session', () => {
   });
 
   describe('pickEnemyType', () => {
-    it('only sends drifters in the first wave', () => {
-      expect(session.pickEnemyType(() => 0.999)).toBe('drifter');
+    it('mostly sends drifters in the first wave', () => {
+      expect(session.pickEnemyType(() => 0.5)).toBe('drifter');
+      expect(session.pickEnemyType(() => 0.999)).toBe('zigzag');
     });
 
     it('introduces new enemies in later waves', () => {

@@ -14,6 +14,7 @@ export default class Session {
     this.waveKills = 0;
     this.streak = 0;
     this.kills = 0;
+    this.extraLives = 0;
     this.nextExtraLife = SHIP.extraLifeEvery;
     this.over = false;
   }
@@ -23,19 +24,20 @@ export default class Session {
   }
 
   registerKill(type) {
-    const awarded = ENEMIES[type].points * this.multiplier;
+    const before = this.multiplier;
+    const awarded = ENEMIES[type].points * before;
     this.streak++;
     this.kills++;
     this.waveKills++;
     this.score += awarded;
-    let extraLife = false;
-    if (this.score >= this.nextExtraLife) {
-      this.lives++;
-      this.nextExtraLife += SHIP.extraLifeEvery;
-      extraLife = true;
-    }
-    if (this.score > this.best) this.best = this.score;
-    return { awarded, extraLife };
+    this.best = Math.max(this.best, this.score);
+    return { awarded, extraLife: this.#earnExtraLife(), comboUp: this.multiplier > before };
+  }
+
+  escape() {
+    const broken = this.multiplier > 1;
+    this.streak = 0;
+    return broken;
   }
 
   hitPlayer() {
@@ -46,9 +48,13 @@ export default class Session {
     return this.over;
   }
 
+  get killsToAdvance() {
+    return this.wave === 1 ? WAVES.firstWaveKills : WAVES.killsToAdvance;
+  }
+
   tick(dt) {
     this.waveTime += dt;
-    if (this.waveTime >= WAVES.duration || this.waveKills >= WAVES.killsToAdvance) {
+    if (this.waveTime >= WAVES.duration || this.waveKills >= this.killsToAdvance) {
       this.wave++;
       this.waveTime = 0;
       this.waveKills = 0;
@@ -67,7 +73,7 @@ export default class Session {
 
   pickEnemyType(rng = Math.random) {
     const options = [['drifter', 6]];
-    if (this.wave >= WAVES.zigzagFromWave) options.push(['zigzag', 3 + this.wave * 0.3]);
+    if (this.wave >= WAVES.zigzagFromWave) options.push(['zigzag', this.wave * 1.5]);
     if (this.wave >= WAVES.shooterFromWave) options.push(['shooter', 1 + this.wave * 0.25]);
     const total = options.reduce((sum, [, weight]) => sum + weight, 0);
     let roll = rng() * total;
@@ -76,5 +82,14 @@ export default class Session {
       if (roll < 0) return type;
     }
     return options[options.length - 1][0];
+  }
+
+  #earnExtraLife() {
+    if (this.score < this.nextExtraLife) return false;
+    this.extraLives++;
+    this.nextExtraLife += SHIP.extraLifeEvery * (this.extraLives + 1);
+    if (this.lives >= SHIP.maxLives) return false;
+    this.lives++;
+    return true;
   }
 }

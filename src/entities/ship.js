@@ -3,6 +3,8 @@ import { sprites, draw } from '../render/sprites.js';
 
 const clamp = (value, min, max) => Math.min(max, Math.max(min, value));
 
+const fading = (remaining) => remaining < 2 && Math.floor(remaining * 8) % 2 === 0;
+
 export default class Ship {
   constructor() {
     this.radius = SHIP.radius;
@@ -25,8 +27,13 @@ export default class Ship {
     this.age += dt;
     this.cooldown -= dt;
     this.invulnerable = Math.max(0, this.invulnerable - dt);
-    for (const power in this.powers) this.powers[power] = Math.max(0, this.powers[power] - dt);
     this.#move(dt, input);
+    return this.#wearOff(dt);
+  }
+
+  boost(seconds) {
+    this.powers.spread = seconds;
+    this.powers.rapid = seconds;
   }
 
   get canFire() {
@@ -62,8 +69,17 @@ export default class Ship {
   }
 
   draw(ctx) {
-    if (this.shielded) draw(ctx, sprites().shield, this.x, this.y);
+    if (this.shielded && !fading(this.powers.shield)) draw(ctx, sprites().shield, this.x, this.y);
     if (this.visible) draw(ctx, sprites().ship, this.x, this.y);
+  }
+
+  #wearOff(dt) {
+    const expired = [];
+    for (const [power, remaining] of Object.entries(this.powers)) {
+      this.powers[power] = Math.max(0, remaining - dt);
+      if (remaining > 0 && this.powers[power] === 0) expired.push(power);
+    }
+    return expired;
   }
 
   #move(dt, input) {

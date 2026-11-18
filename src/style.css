@@ -39,7 +39,7 @@ canvas {
   top: var(--safe-top);
   left: var(--safe-left);
   right: var(--safe-right);
-  height: 44px;
+  height: 48px;
   padding: 0 12px;
   display: grid;
   grid-template-columns: 1fr auto 1fr auto;
@@ -68,8 +68,8 @@ button {
   background: rgba(20, 10, 50, 0.6);
   border: 1px solid rgba(232, 230, 255, 0.25);
   border-radius: 10px;
-  min-width: 40px;
-  min-height: 36px;
+  min-width: 44px;
+  min-height: 44px;
   cursor: pointer;
 }
 
@@ -129,6 +129,39 @@ button.primary {
   .keyboard { display: none; }
 }
 
+.sr-only {
+  position: absolute;
+  width: 1px;
+  height: 1px;
+  overflow: hidden;
+  clip-path: inset(50%);
+  white-space: nowrap;
+}
+
+.powers {
+  position: fixed;
+  top: calc(var(--safe-top) + 52px);
+  left: 0;
+  right: 0;
+  text-align: center;
+  font-size: 13px;
+  letter-spacing: 0.08em;
+  text-transform: uppercase;
+  color: var(--yellow);
+  text-shadow: 0 0 8px var(--yellow);
+  pointer-events: none;
+}
+
+.rotate { display: none; z-index: 10; }
+
+@media (orientation: landscape) and (pointer: coarse) and (max-height: 500px) {
+  .rotate { display: flex; }
+}
+
+canvas.rainbow { animation: rainbow 2s linear infinite; }
+
+@keyframes rainbow { to { filter: hue-rotate(360deg); } }
+
 .toast, .hint {
   position: fixed;
   left: 50%;
@@ -163,7 +196,7 @@ button.primary {
 @media (prefers-reduced-motion: reduce) {
   .toast { transition: none; }
   .hint { animation: none; }
-  #score.pulse, .new-best { animation: none; }
+  #score.pulse, .new-best, canvas.rainbow { animation: none; }
 }
 
 @media (max-width: 440px) {
@@ -171,5 +204,5 @@ button.primary {
   .stat .label { font-size: 9px; }
   .stat.right .label { display: none; }
   #score { font-size: 18px; }
-  .buttons button { min-width: 36px; }
+  .buttons { gap: 4px; }
 }

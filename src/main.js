@@ -13,9 +13,12 @@ import Mixer from './audio/mixer.js';
 import Sfx from './audio/sfx.js';
 import Music from './audio/music.js';
 import Hud from './hud.js';
+import Konami from './konami.js';
 
 const $ = (id) => document.getElementById(id);
 const calm = matchMedia('(prefers-reduced-motion: reduce)');
+const sideways = matchMedia('(orientation: landscape) and (pointer: coarse) and (max-height: 500px)');
+const MAELSTROM_MODE = 30;
 
 const canvas = $('screen');
 const viewport = new Viewport(canvas);
@@ -32,6 +35,7 @@ const hud = new Hud();
 const overlays = { title: $('title'), paused: $('paused'), over: $('over') };
 let scene = 'title';
 let previousBest = session.best;
+let maelstromMode = false;
 
 const show = (name) => {
   scene = name;
@@ -55,7 +59,22 @@ const start = () => {
   show('playing');
   hud.toast('Wave 1');
   hint();
+  if (maelstromMode) unleash();
 };
+
+const unleash = () => {
+  play.ship.boost(MAELSTROM_MODE);
+  canvas.classList.add('rainbow');
+  setTimeout(() => canvas.classList.remove('rainbow'), MAELSTROM_MODE * 1000);
+  hud.toast('Maelstrom mode', 2);
+};
+
+const konami = new Konami(() => {
+  maelstromMode = true;
+  mixer.unlock();
+  sfx.extraLife();
+  $('title-best').textContent = 'Maelstrom mode unlocked';
+});
 
 const pause = () => {
   if (scene !== 'playing') return;
@@ -129,7 +148,11 @@ $('mute').addEventListener('click', toggleMute);
 showMuted(mixer.muted);
 showBest();
 
-window.addEventListener('keydown', () => scene === 'playing' && mixer.resume());
+window.addEventListener('keydown', (event) => {
+  if (scene === 'playing') mixer.resume();
+  if (scene === 'title') konami.press(event.code);
+});
+sideways.addEventListener('change', () => sideways.matches && pause());
 window.addEventListener('pointerdown', (event) => {
   if (event.pointerType === 'touch') input.usedTouch = true;
   if (scene === 'playing') mixer.resume();
@@ -144,6 +167,10 @@ events.subscribe('hit', () => {
   music.duck();
 });
 events.subscribe('charge', () => sfx.charge());
+events.subscribe('expire', (power) => {
+  sfx.expire();
+  hud.toast(`${power} faded`, 0.8);
+});
 events.subscribe('powerup', (type) => {
   sfx.powerup();
   hud.toast({ spread: 'Spread shot', rapid: 'Rapid fire', shield: 'Shield' }[type], 1.2);
@@ -182,7 +209,7 @@ const commands = {
   playing: (dt) => {
     if (input.consume('pause')) return pause();
     play.update(dt, input);
-    hud.render(session);
+    hud.render(session, play.ship);
     if (play.finished) finish();
   },
 };
@@ -217,5 +244,5 @@ const frame = (ctx) => {
   ctx.strokeRect(0, 0, WORLD.width, WORLD.height);
 };
 
-hud.render(session);
+hud.render(session, play.ship);
 new Loop({ update, render }).start();

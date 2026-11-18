@@ -86,7 +86,7 @@ export default class Play {
 
   #play(dt, input) {
     if (this.session.tick(dt)) this.events.publish('wave', this.session.wave);
-    this.ship.update(dt, input);
+    for (const power of this.ship.update(dt, input)) this.events.publish('expire', power);
     if (input.firing && this.ship.canFire) this.#fire();
     this.#trail();
     this.#spawn(dt);

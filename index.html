@@ -19,13 +19,14 @@
   <header class="hud" aria-live="off">
     <div class="stat"><span class="label">Score</span><span id="score">0</span><span id="multiplier" class="multiplier"></span></div>
     <div class="stat center"><span class="label">Wave</span><span id="wave">1</span></div>
-    <div class="stat right"><span class="label">Lives</span><span id="lives" class="lives"></span></div>
+    <div class="stat right"><span class="label" aria-hidden="true">Lives</span><span id="lives" class="lives" aria-hidden="true"></span><span id="lives-text" class="sr-only"></span></div>
     <div class="buttons">
       <button id="mute" type="button" aria-label="Mute" aria-pressed="false">🔊</button>
       <button id="pause" type="button" aria-label="Pause">❚❚</button>
     </div>
   </header>
 
+  <div id="powers" class="powers" aria-live="off"></div>
   <div id="toast" class="toast" role="status"></div>
   <div id="hint" class="hint" hidden></div>
 
@@ -37,6 +38,11 @@
     <p class="controls keyboard">Arrows / WASD move · Space fire · P pause · M mute</p>
     <p class="controls touch">Drag anywhere to fly · firing is automatic</p>
     <p class="note touch">Phone on silent? Turn the ringer on for sound.</p>
+  </section>
+
+  <section id="rotate" class="overlay rotate">
+    <h2>Turn your phone</h2>
+    <p class="tagline">Maelstrom plays upright.</p>
   </section>
 
   <section id="paused" class="overlay" hidden>

@@ -1,6 +1,6 @@
 import { WORLD, VIEW } from '../config.js';
 
-export const HUD_HEIGHT = 44;
+export const HUD_HEIGHT = 48;
 
 export default class Viewport {
   constructor(canvas, win = window) {

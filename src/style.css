@@ -195,6 +195,26 @@ button.primary:focus-visible { outline: 3px solid var(--ink); }
 
 .toast.show { opacity: 1; }
 
+.intro {
+  position: fixed;
+  left: 50%;
+  bottom: calc(var(--safe-bottom) + 26%);
+  transform: translateX(-50%);
+  width: min(86vw, 360px);
+  padding: 10px 16px;
+  text-align: center;
+  pointer-events: none;
+  background: rgba(239, 230, 210, 0.92);
+  border-top: 2px solid var(--ink);
+  border-bottom: 2px solid var(--ink);
+  opacity: 0;
+  transition: opacity 300ms ease;
+}
+
+.intro strong { display: block; font-size: 22px; font-style: italic; }
+.intro span { font-size: 15px; color: var(--wash); }
+.intro.show { opacity: 1; }
+
 .hint {
   bottom: calc(var(--safe-bottom) + 18%);
   font-size: 16px;
@@ -206,7 +226,7 @@ button.primary:focus-visible { outline: 3px solid var(--ink); }
 @keyframes fade { 0%, 70% { opacity: 1; } 100% { opacity: 0; } }
 
 @media (prefers-reduced-motion: reduce) {
-  .toast { transition: none; }
+  .toast, .intro { transition: none; }
   .hint { animation: none; }
   #score.pulse, .new-best { animation: none; }
 }

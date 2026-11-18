@@ -16,7 +16,8 @@ const DEATH_SLOWDOWN = 0.35;
 const COLORS_BY_ENEMY = { drifter: 'ink', zigzag: 'indigo', shooter: 'moss' };
 
 export default class Play {
-  constructor({ session, events, rng = Math.random, calm = () => false }) {
+  constructor({ session, events, rng = Math.random, calm = () => false, met = [] }) {
+    this.met = new Set(met);
     this.calm = calm;
     this.session = session;
     this.events = events;
@@ -162,7 +163,15 @@ export default class Play {
     this.spawnIn -= dt;
     if (this.spawnIn > 0 || this.enemies.count >= WAVES.maxEnemies) return;
     this.spawnIn = this.session.spawnInterval * (0.7 + this.rng() * 0.6);
-    this.enemies.spawn(this.session.pickEnemyType(this.rng), this.session.speedMultiplier);
+    const type = this.session.pickEnemyType(this.rng);
+    this.enemies.spawn(type, this.session.speedMultiplier);
+    this.#meet(type);
+  }
+
+  #meet(type) {
+    if (this.met.has(type)) return;
+    this.met.add(type);
+    this.events.publish('meet', type);
   }
 
   #trail() {

@@ -23,7 +23,7 @@ export const SHIP = {
 
 export const ENEMIES = {
   drifter: { radius: 18, hp: 1, points: 100, speed: 140 },
-  zigzag: { radius: 16, hp: 1, points: 150, speed: 170, amplitude: 90, frequency: 2.4 },
+  zigzag: { radius: 17, hp: 1, points: 150, speed: 170, amplitude: 90, frequency: 2.4 },
   shooter: { radius: 20, hp: 4, points: 300, speed: 110, fireInterval: 1.8, bulletSpeed: 230, lingerFor: 5 },
 };
 

@@ -113,3 +113,16 @@ describe('the maelstrom', () => {
     expect(stirred).toBe(true);
   });
 });
+
+describe('meeting enemies', () => {
+  it('introduces each kind once', () => {
+    const session = new Session();
+    const events = new EventAggregator();
+    const play = new Play({ session, events, rng: () => 0.1, met: ['zigzag'] });
+    const met = [];
+    events.subscribe('meet', (type) => met.push(type));
+    play.start();
+    for (let i = 0; i < 300; i++) play.update(1 / 60, idle);
+    expect(met).toEqual(['drifter']);
+  });
+});

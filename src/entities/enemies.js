@@ -64,6 +64,8 @@ const lost = (enemy) => enemy.y < -200 || enemy.x < -100 || enemy.x > WORLD.widt
 
 export const recentlyStruck = (enemy) => enemy.age - enemy.struckAt < VORTEX.bonusWindow;
 
+const heading = (enemy) => (enemy.type === 'zigzag' ? -Math.atan2(enemy.x - enemy.lastX, enemy.y - enemy.lastY) : 0);
+
 const growth = (enemy) => (enemy.winding ? 1 + 0.4 * (1 - Math.max(0, enemy.reload) / WIND_UP) : 1);
 
 export default class Enemies {
@@ -82,6 +84,8 @@ export default class Enemies {
       hp,
       x,
       y: -radius * 2,
+      lastX: x,
+      lastY: -radius * 2 - 1,
       originX: Math.min(Math.max(x, margin), WORLD.width - margin),
       vx: (this.rng() - 0.5) * 80 * speed,
       vy: base * speed * (0.85 + this.rng() * 0.3),
@@ -99,6 +103,8 @@ export default class Enemies {
     for (const enemy of this.pool) {
       enemy.age += dt;
       enemy.flash = Math.max(0, enemy.flash - dt);
+      enemy.lastX = enemy.x;
+      enemy.lastY = enemy.y;
       behaviours[enemy.type](enemy, dt, world);
       drift(enemy, world.vortex.pull(enemy, dt, VORTEX.weights.enemy));
       if (escaped(enemy)) this.#escape(enemy, world);
@@ -122,7 +128,7 @@ export default class Enemies {
   draw(ctx) {
     for (const enemy of this.pool) {
       ctx.globalAlpha = enemy.flash ? 0.4 : 1;
-      draw(ctx, sprites()[enemy.type], enemy.x, enemy.y, 0, growth(enemy));
+      draw(ctx, sprites()[enemy.type], enemy.x, enemy.y, heading(enemy), growth(enemy));
     }
     ctx.globalAlpha = 1;
   }

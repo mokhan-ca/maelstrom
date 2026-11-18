@@ -43,25 +43,32 @@ const spider = (brush) => {
 };
 
 const koi = (brush) => {
-  const body = [[0, 16], [8, 6], [7, -8], [0, -14], [-7, -8], [-8, 6]];
-  brush.fill(body, indigo, 0.85);
-  brush.stroke([...body, body[0]], { color: ink, width: 1.8 });
-  brush.fill([[0, -12], [9, -20], [0, -16], [-9, -20]], indigo, 0.8);
-  brush.blot(3, 2, 2.5, ochre, 0.9);
-  brush.blot(-3, 8, 2, ochre, 0.8);
-  brush.blot(-3, 11, 1.4, paper, 1);
-  brush.blot(3, 11, 1.4, paper, 1);
+  const body = [[0, 22], [7, 14], [9, 2], [7, -10], [0, -16], [-7, -10], [-9, 2], [-7, 14]];
+  brush.fill([[0, -14], [12, -26], [4, -20], [0, -24], [-4, -20], [-12, -26]], indigo, 0.85);
+  brush.fill([[7, 8], [17, 14], [8, 14]], indigo, 0.8);
+  brush.fill([[-7, 8], [-17, 14], [-8, 14]], indigo, 0.8);
+  brush.fill(body, paper, 1);
+  brush.blot(-2, 4, 5, indigo, 0.9);
+  brush.blot(3, -6, 3.5, ochre, 0.9);
+  brush.stroke([...body, body[0]], { color: ink, width: 2 });
+  brush.blot(-4, 15, 2, ink, 1);
+  brush.blot(4, 15, 2, ink, 1);
+  brush.stroke([[-2, 21], [0, 22.5], [2, 21]], { color: ink, width: 1.2, passes: 1 });
 };
 
-const lantern = (brush) => {
-  const shell = [[-18, -10], [-20, 0], [-18, 10], [18, 10], [20, 0], [18, -10]];
-  brush.fill(shell, moss, 0.75);
-  brush.stroke([...shell, shell[0]], { color: ink, width: 2 });
-  for (const x of [-10, 0, 10]) brush.stroke([[x, -10], [x * 1.1, 0], [x, 10]], { color: ink, width: 1, passes: 1 });
-  brush.fill([[-10, -14], [10, -14], [8, -10], [-8, -10]], ink);
-  brush.fill([[-8, 10], [8, 10], [10, 14], [-10, 14]], ink);
-  brush.blot(0, 0, 5.5, paper, 1);
-  brush.blot(0, 0, 3, ink, 1);
+const lanternGhost = (brush) => {
+  const shell = [[-13, -16], [-17, -4], [-17, 8], [-13, 18], [13, 18], [17, 8], [17, -4], [13, -16]];
+  brush.fill(shell, paper, 1);
+  brush.fill(shell, moss, 0.35);
+  for (const y of [-10, -3, 4, 11]) brush.stroke([[-16, y], [0, y + 1.5], [16, y]], { color: ink, width: 0.9, passes: 1, jitter: 0.6 });
+  brush.stroke([...shell, shell[0]], { color: ink, width: 2.2 });
+  brush.fill([[-9, -21], [9, -21], [7, -16], [-7, -16]], ink);
+  brush.fill([[-7, 18], [7, 18], [9, 23], [-9, 23]], ink);
+  brush.blot(0, -5, 6.5, paper, 1);
+  brush.circle(0, -5, 6.5, { color: ink, width: 1.6, gap: 0 });
+  brush.blot(1, -4, 3, ink, 1);
+  brush.fill([[-9, 7], [9, 7], [6, 12], [-6, 12]], ink);
+  brush.fill([[-2, 10], [3, 10], [4, 20], [0, 24], [-2, 18]], vermilion, 0.95);
 };
 
 const dash = (color) => (brush) => {
@@ -103,8 +110,8 @@ export function sprites() {
   cache ??= {
     ship: paint(40, 44, plane),
     drifter: paint(44, 40, spider),
-    zigzag: paint(24, 40, koi),
-    shooter: paint(44, 32, lantern),
+    zigzag: paint(36, 52, koi),
+    shooter: paint(36, 48, lanternGhost),
     laser: paint(6, 24, dash(ink)),
     brushLaser: paint(6, 24, dash(vermilion)),
     bullet: paint(20, 20, drop),

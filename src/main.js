@@ -19,13 +19,18 @@ const $ = (id) => document.getElementById(id);
 const calm = matchMedia('(prefers-reduced-motion: reduce)');
 const sideways = matchMedia('(orientation: landscape) and (pointer: coarse) and (max-height: 500px)');
 const BRUSH_MODE = 30;
+const BESTIARY = {
+  drifter: ['Ink spider', 'drifts down. Let it pass and your combo breaks.'],
+  zigzag: ['Koi', 'weaves side to side.'],
+  shooter: ['Lantern ghost', 'stops, stares, then spits ink at you.'],
+};
 
 const canvas = $('screen');
 const viewport = new Viewport(canvas);
 const input = new Input({ pointerTarget: canvas, worldScale: () => viewport.scale });
 const events = new EventAggregator();
 const session = new Session({ best: load('best', 0) });
-const play = new Play({ session, events, calm: () => calm.matches });
+const play = new Play({ session, events, calm: () => calm.matches, met: load('met', []) });
 const paper = new Paper();
 const mixer = new Mixer({ muted: load('muted', false) });
 const sfx = new Sfx(mixer);
@@ -166,7 +171,11 @@ events.subscribe('hit', () => {
 });
 events.subscribe('charge', () => sfx.charge());
 events.subscribe('swallow', () => sfx.swallow());
-events.subscribe('maelstrom', () => hud.toast('The maelstrom stirs', 2.2));
+events.subscribe('maelstrom', () => hud.introduce('The maelstrom', 'pulls everything in. Swallowed prey you struck pays double.'));
+events.subscribe('meet', (type) => {
+  save('met', [...play.met]);
+  hud.introduce(...BESTIARY[type]);
+});
 events.subscribe('expire', (power) => {
   sfx.expire();
   hud.toast(`${power} faded`, 0.8);

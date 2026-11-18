@@ -1,12 +1,12 @@
-var _ = require('underscore');
+import bindAll from './bind_all.js';
 
 function Music(url, window){
-  _.bindAll(this, 'run', 'onLoad', 'onError');
+  bindAll(this, 'run', 'onLoad', 'onError');
   this.url = url;
   this.window = window;
 }
 
-Music.prototype.run = function(game) {
+Music.prototype.run = function() {
   this.window.AudioContext = this.window.AudioContext || this.window.webkitAudioContext;
   this.request = new XMLHttpRequest();
   this.request.open('GET', this.url, true);
@@ -16,7 +16,7 @@ Music.prototype.run = function(game) {
 };
 
 Music.prototype.onLoad = function() {
-  var context = new AudioContext();
+  var context = new this.window.AudioContext();
   context.decodeAudioData(this.request.response, function(buffer) {
     var source    = context.createBufferSource(); // creates a sound source
     source.buffer = buffer;                       // tell the source which sound to play
@@ -29,4 +29,4 @@ Music.prototype.onLoad = function() {
 Music.prototype.onError = function() {
 };
 
-module.exports = Music;
+export default Music;

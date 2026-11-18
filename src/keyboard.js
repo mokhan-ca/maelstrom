@@ -1,4 +1,4 @@
-module.exports = {
+export default {
   keysPressed: {},
 
   LEFT: 37,

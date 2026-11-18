@@ -1,7 +1,7 @@
-var _ = require('underscore');
+import bindAll from './bind_all.js';
 
 function Monster(sprite){
-  _.bindAll(this, 'redrawOn', 'collideWith');
+  bindAll(this, 'redrawOn', 'collideWith');
   this.sprite = sprite;
   this.stop = false;
 }
@@ -28,4 +28,4 @@ Monster.prototype.isMoving = function() {
   return this.stop === false;
 };
 
-module.exports = Monster;
+export default Monster;

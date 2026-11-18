@@ -1,38 +1,21 @@
 # MAELSTROM
 
-[![Build Status](https://travis-ci.org/mokhan/maelstrom.svg?branch=master)](https://travis-ci.org/mokhan/maelstrom)
-[![Code Climate](https://codeclimate.com/github/mokhan/maelstrom/badges/gpa.svg)](https://codeclimate.com/github/mokhan/maelstrom)
-[![Test Coverage](https://codeclimate.com/github/mokhan/maelstrom/badges/coverage.svg)](https://codeclimate.com/github/mokhan/maelstrom)
-[Demo](https://www.mokhan.ca/maelstrom/)
+A browser arcade shooter. Play it at https://maelstrom.mokhan.ca
 
-## Instructions
+## Controls
 
-* Up: Move forward
-* Down: Move backward
-* Left: Move Left
-* Right: Move Right
-* Space: Shoot laser
-* Enter: To restart after death.
+* Arrows: move
+* Space: shoot
+* Enter: restart after death
 
-## GETTING STARTED
+## Development
+
+Requires Node 22.
 
 ```bash
-  npm install
-  npm start
-```
-
-Open a browser to http://localhost:9090/
-
-## DEVELOPMENT
-
-To run the tests:
-
-```bash
-  npm test
-```
-
-To build a distribution:
-
-```bash
-  npm run build
+npm install
+npm run dev      # http://localhost:5173 (also exposed on your LAN)
+npm test
+npm run lint
+npm run build    # outputs dist/
 ```

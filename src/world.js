@@ -1,7 +1,7 @@
-var _ = require('underscore');
+import bindAll from './bind_all.js';
 
 function World(options){
-  _.bindAll(this, 'add', 'bindTo', 'draw', 'run', 'render', 'detectCollisions', 'eachProp', 'inBounds', 'remove');
+  bindAll(this, 'add', 'bindTo', 'draw', 'run', 'render', 'detectCollisions', 'eachProp', 'inBounds', 'remove');
   this.props = [];
   this.height = options.height;
   this.width = options.width;
@@ -70,7 +70,7 @@ World.prototype.collision = function(prop, otherProp) {
 
 World.prototype.eachProp = function(callback) {
   var current = this.props.slice(0);
-  _.each(current, callback);
+  current.forEach(callback);
 };
 
 World.prototype.inBounds = function(sprite) {
@@ -87,4 +87,4 @@ World.prototype.remove = function(prop) {
   this.props.splice(this.props.indexOf(prop), 1);
 };
 
-module.exports = World;
+export default World;

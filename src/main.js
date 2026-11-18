@@ -1,11 +1,10 @@
-var Game = require('./game.js');
-var Clock = require('./clock.js');
-var World = require('./world.js');
-var Keyboard = require('./keyboard.js');
-var Music = require('./music.js');
-var LevelOne = require('./level_one.js');
-var EventAggregator = require('./event_aggregator.js');
-var _ = require('underscore');
+import Game from './game.js';
+import Clock from './clock.js';
+import World from './world.js';
+import Keyboard from './keyboard.js';
+import Music from './music.js';
+import LevelOne from './level_one.js';
+import EventAggregator from './event_aggregator.js';
 
 window.addEventListener('keyup', function(event) { Keyboard.onKeyup(event); }, false);
 window.addEventListener('keydown', function(event) { Keyboard.onKeydown(event); }, false);

@@ -1,4 +1,4 @@
-module.exports = {
+export default {
   monster: 'img/spider.gif',
   rocketship: 'img/rocketship.png',
   explosion: 'img/explosion.gif',

@@ -1,41 +1,35 @@
 {
   "name": "maelstrom",
-  "version": "1.0.0",
-  "description": "MAELSTROM       =========",
-  "main": "application.js",
+  "version": "2.0.0",
+  "private": true,
+  "description": "A neon arcade shooter for the browser.",
+  "type": "module",
   "scripts": {
-    "clean": "rm -fr dist/",
-    "prebuild": "npm run clean && mkdir -p dist/js dist/css dist/img dist/audio",
-    "build": "npm run build:js && npm run build:html && npm run build:css && npm run build:img && npm run build:audio",
-    "build:js": "browserify public/javascripts/application.js > dist/js/application.js",
-    "build:html": "cp index.html dist/",
-    "build:css": "cp public/stylesheets/*.css dist/css",
-    "build:img": "cp public/images/* dist/img/",
-    "build:audio": "cp public/audio/* dist/audio/",
-    "lint": "jshint js/*.js",
-    "test": "istanbul test jasmine",
-    "test:coverage": "istanbul cover jasmine",
-    "env": "env",
-    "start": "ruby -run -e httpd dist/ -p 9090"
+    "dev": "vite --host",
+    "build": "vite build",
+    "preview": "vite preview --host",
+    "test": "vitest run",
+    "test:watch": "vitest",
+    "lint": "eslint .",
+    "deploy": "npm run build && wrangler deploy"
   },
   "repository": {
     "type": "git",
-    "url": "https://github.com/mokhan/maelstrom.git"
+    "url": "https://github.com/xlgmokha/maelstrom.git"
   },
   "author": "mokhan",
   "license": "ISC",
   "bugs": {
-    "url": "https://github.com/mokhan/maelstrom/issues"
+    "url": "https://github.com/xlgmokha/maelstrom/issues"
   },
-  "homepage": "https://github.com/mokhan/maelstrom",
+  "homepage": "https://maelstrom.mokhan.ca",
   "devDependencies": {
-    "browserify": "latest",
-    "codeclimate-test-reporter": "latest",
-    "istanbul": "latest",
-    "jasmine": "latest",
-    "jshint": "latest"
-  },
-  "dependencies": {
-    "underscore": "latest"
+    "@eslint/js": "10.0.1",
+    "eslint": "10.15.0",
+    "globals": "17.14.0",
+    "jsdom": "31.0.1",
+    "vite": "8.3.8",
+    "vitest": "5.1.1",
+    "wrangler": "4.164.0"
   }
 }

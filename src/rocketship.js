@@ -1,10 +1,10 @@
-var Key = require('./keyboard.js');
-var Images = require('./images.js');
-var Laser = require('./laser.js');
-var _ = require('underscore');
+import bindAll from './bind_all.js';
+import Key from './keyboard.js';
+import Images from './images.js';
+import Laser from './laser.js';
 
 function Rocketship(sprite, eventAggregator){
-  _.bindAll(this, 'redrawOn', 'collideWith', 'die', 'alive');
+  bindAll(this, 'redrawOn', 'collideWith', 'die', 'alive');
   this.sprite = sprite;
   this.dead = false;
   this.coolDown = 0;
@@ -64,4 +64,4 @@ Rocketship.prototype.alive = function(world) {
   this.sprite = this.sprite.moveTo(world, 250, 400);
 };
 
-module.exports = Rocketship;
+export default Rocketship;

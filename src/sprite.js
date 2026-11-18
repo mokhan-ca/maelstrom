@@ -1,12 +1,11 @@
-var Heading = require('./heading.js');
-var Images = require('./images.js');
-var Laser = require('./laser.js');
-var Images = require('./images.js');
-var Sound = require('./sound.js');
-var _ = require('underscore');
+import bindAll from './bind_all.js';
+import Heading from './heading.js';
+import Images from './images.js';
+import Laser from './laser.js';
+import Sound from './sound.js';
 
 function Sprite(options){
-  _.bindAll(this, 'moveForward', 'moveLeft', 'moveRight', 'move');
+  bindAll(this, 'moveForward', 'moveLeft', 'moveRight', 'move');
   this.x = options.x;
   this.y = options.y;
   this.heading = options.heading;
@@ -91,4 +90,4 @@ Sprite.prototype.fire = function(world) {
   Sound.play(Sound.laser);
 };
 
-module.exports = Sprite;
+export default Sprite;

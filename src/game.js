@@ -1,8 +1,8 @@
-var _ = require('underscore');
+import bindAll from './bind_all.js';
 
 function Game() {
   this.commands = [];
-  _.bindAll(this, 'add', 'run');
+  bindAll(this, 'add', 'run');
 }
 
 Game.prototype.add = function(command) {
@@ -19,4 +19,4 @@ Game.prototype.run = function(){
   }
 };
 
-module.exports = Game;
+export default Game;

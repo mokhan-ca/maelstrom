@@ -1,4 +1,4 @@
-var Utility = require('./utility.js');
+import Utility from './utility.js';
 
 var Heading = {
   NORTH: (Math.PI / 2) * - 1,
@@ -10,4 +10,4 @@ var Heading = {
   }
 };
 
-module.exports = Heading;
+export default Heading;

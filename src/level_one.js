@@ -1,14 +1,14 @@
-var Monster = require('./monster.js');
-var Sprite = require('./sprite.js');
-var Heading = require('./heading.js');
-var Utility = require('./utility.js');
-var Images = require('./images.js');
-var Rocketship = require('./rocketship.js');
-var Sound = require('./sound.js');
-var _ = require('underscore');
+import bindAll from './bind_all.js';
+import Monster from './monster.js';
+import Sprite from './sprite.js';
+import Heading from './heading.js';
+import Utility from './utility.js';
+import Images from './images.js';
+import Rocketship from './rocketship.js';
+import Sound from './sound.js';
 
 function LevelOne(world, eventAggregator){
-  _.bindAll(this, 'run', 'deployMonster', 'deployShip');
+  bindAll(this, 'run', 'deployMonster', 'deployShip');
   this.world = world;
   this.eventAggregator = eventAggregator;
   this.countdown = 0;
@@ -50,4 +50,4 @@ LevelOne.prototype.deployShip = function() {
   }), this.eventAggregator));
 };
 
-module.exports = LevelOne;
+export default LevelOne;

@@ -1,4 +1,4 @@
-module.exports = {
+export default {
   explosion: 'audio/explode.wav',
   laser: 'audio/laser.wav',
   smash: 'audio/smash.wav',

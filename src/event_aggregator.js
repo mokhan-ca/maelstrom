@@ -1,7 +1,7 @@
-var _ = require('underscore');
+import bindAll from './bind_all.js';
 
 function EventAggregator(){
-  _.bindAll(this, 'subscribe', 'publish');
+  bindAll(this, 'subscribe', 'publish');
   this.subscribers = {};
 };
 
@@ -11,9 +11,7 @@ EventAggregator.prototype.subscribe = function(event, subscriber) {
 }
 
 EventAggregator.prototype.publish = function(event, message) {
-  _.each(this.subscribers[event], function(subscriber){
-    subscriber(message);
-  });
+  (this.subscribers[event] || []).forEach((subscriber) => subscriber(message));
 }
 
-module.exports = EventAggregator;
+export default EventAggregator;

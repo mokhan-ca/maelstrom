@@ -1,8 +1,8 @@
-var _ = require('underscore');
+import bindAll from './bind_all.js';
 
 function Clock(window){
   this.window = window;
-  _.bindAll(this, 'run');
+  bindAll(this, 'run');
 }
 
 Clock.prototype.run = function(game) {
@@ -10,4 +10,4 @@ Clock.prototype.run = function(game) {
   this.window.requestAnimationFrame(game.run);
 };
 
-module.exports = Clock;
+export default Clock;

@@ -1,9 +1,9 @@
-var Monster = require('./monster');
-var Sound = require('./sound');
-var _ = require('underscore');
+import bindAll from './bind_all.js';
+import Monster from './monster.js';
+import Sound from './sound.js';
 
 function Laser(sprite) {
-  _.bindAll(this, 'redrawOn', 'collideWith');
+  bindAll(this, 'redrawOn', 'collideWith');
   this.sprite = sprite;
   this.destroyed = false;
 }
@@ -29,4 +29,4 @@ Laser.prototype.collideWith = function(otherProp) {
   }
 };
 
-module.exports = Laser;
+export default Laser;

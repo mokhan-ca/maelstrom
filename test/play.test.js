@@ -17,9 +17,9 @@ describe('Play', () => {
   });
 
   it('stops scoring once the game is over', () => {
-    play.enemies.spawn('drifter', 1);
-    const [enemy] = play.enemies;
-    play.lasers.fire(enemy.x, enemy.y + 5, 0, 0);
+    play.arena.enemies.spawn('drifter', 1);
+    const [enemy] = play.arena.enemies;
+    play.arena.lasers.fire(enemy.x, enemy.y + 5, 0, 0);
     session.lives = 1;
     session.hitPlayer();
 
@@ -29,9 +29,9 @@ describe('Play', () => {
   });
 
   it('scores a laser hit while playing', () => {
-    play.enemies.spawn('drifter', 1);
-    const [enemy] = play.enemies;
-    play.lasers.fire(enemy.x, enemy.y + 5, 0, 0);
+    play.arena.enemies.spawn('drifter', 1);
+    const [enemy] = play.arena.enemies;
+    play.arena.lasers.fire(enemy.x, enemy.y + 5, 0, 0);
 
     play.update(1 / 60, idle);
 
@@ -48,8 +48,8 @@ describe('Play stakes', () => {
     events.subscribe('combo-broken', () => (broken = true));
     play.start();
     session.streak = 10;
-    play.enemies.spawn('drifter', 1);
-    const [enemy] = play.enemies;
+    play.arena.enemies.spawn('drifter', 1);
+    const [enemy] = play.arena.enemies;
     enemy.y = 2000;
 
     play.update(1 / 60, idle);
@@ -63,8 +63,8 @@ describe('Play stakes', () => {
     const play = new Play({ session, events: new EventAggregator(), rng: () => 0.99 });
     play.start();
     session.kills = 8;
-    play.powerups.maybeDrop(100, 100, session.kills);
-    expect([...play.powerups]).toHaveLength(1);
+    play.arena.powerups.maybeDrop(100, 100, session.kills);
+    expect([...play.arena.powerups]).toHaveLength(1);
   });
 });
 
@@ -75,11 +75,11 @@ describe('the maelstrom', () => {
   let enemy;
 
   const intoTheCore = () => {
-    play.vortex.awaken(2);
-    play.vortex.update(2);
-    play.enemies.spawn('drifter', 1);
-    [enemy] = play.enemies;
-    Object.assign(enemy, { x: play.vortex.x, y: play.vortex.y, vx: 0, vy: 0 });
+    play.arena.vortex.awaken(2);
+    play.arena.vortex.update(2);
+    play.arena.enemies.spawn('drifter', 1);
+    [enemy] = play.arena.enemies;
+    Object.assign(enemy, { x: play.arena.vortex.x, y: play.arena.vortex.y, vx: 0, vy: 0 });
   };
 
   beforeEach(() => {
@@ -102,7 +102,7 @@ describe('the maelstrom', () => {
   it('pays double for an enemy you struck before it was swallowed', () => {
     intoTheCore();
     enemy.hp = 2;
-    play.enemies.damage(enemy);
+    play.arena.enemies.damage(enemy);
     play.update(1 / 60, idle);
     expect(session.score).toBe(200);
   });
@@ -151,7 +151,7 @@ describe('boss fights', () => {
   const [eye, arm] = [0, 1];
   const shoot = (index) => {
     const { x, y } = play.boss.parts[index];
-    play.lasers.fire(x, y, 0, 0);
+    play.arena.lasers.fire(x, y, 0, 0);
   };
 
   beforeEach(() => {
@@ -175,7 +175,7 @@ describe('boss fights', () => {
   it('sends only drifters as fodder', () => {
     play.spawnIn = 0;
     play.update(1 / 60, idle);
-    expect([...play.enemies].map((enemy) => enemy.type)).toEqual(['drifter']);
+    expect([...play.arena.enemies].map((enemy) => enemy.type)).toEqual(['drifter']);
   });
 
   it('wounds the boss through its weak spot', () => {
@@ -188,7 +188,7 @@ describe('boss fights', () => {
     shoot(arm);
     play.update(1 / 60, idle);
     expect(play.boss.hp).toBe(play.boss.maxHp);
-    expect([...play.lasers]).toHaveLength(0);
+    expect([...play.arena.lasers]).toHaveLength(0);
   });
 
   it('hurts a ship that touches it and stays whole', () => {

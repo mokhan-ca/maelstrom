@@ -4,8 +4,8 @@ const HIT_STOP = { phase: 0.12, defeat: 0.25 };
 const SHIELD = 28;
 
 export default class BossFight {
-  constructor({ summon, calm, session, events, ship, lasers, particles, effects, powerups, hurt, jolt, conquered }) {
-    Object.assign(this, { summon, calm, session, events, ship, lasers, particles, effects, powerups, hurt, jolt, conquered });
+  constructor(arena, { summon, hurt, conquered }) {
+    Object.assign(this, { arena, summon, hurt, conquered });
     this.reset();
   }
 
@@ -16,7 +16,7 @@ export default class BossFight {
 
   begin({ type, tier }) {
     this.boss = this.summon(type, tier);
-    this.events.publish('boss', { type, tier });
+    this.arena.events.publish('boss', { type, tier });
   }
 
   update(dt, world) {
@@ -26,16 +26,17 @@ export default class BossFight {
 
   collide() {
     const { boss } = this;
+    const { lasers, ship } = this.arena;
     if (!boss) return;
-    eachCollision(this.lasers, boss.parts, (laser, part) => {
+    eachCollision(lasers, boss.parts, (laser, part) => {
       laser.active = false;
       this.#strike(boss, part, laser);
       return true;
     });
     if (this.boss !== boss) return;
-    if (this.ship.shielded) return this.#brace(boss);
-    if (!this.ship.vulnerable) return;
-    eachCollision([this.ship], boss.parts, () => {
+    if (ship.shielded) return this.#brace(boss);
+    if (!ship.vulnerable) return;
+    eachCollision([ship], boss.parts, () => {
       this.hurt();
       return true;
     });
@@ -46,53 +47,57 @@ export default class BossFight {
   }
 
   draw(ctx) {
-    for (const boss of [this.wreck, this.boss]) boss?.draw(ctx, this.calm());
+    for (const boss of [this.wreck, this.boss]) boss?.draw(ctx, this.arena.calm());
   }
 
   #strike(boss, part, laser) {
     const wound = part.weak && boss.damage();
     if (!wound) return this.#glance(boss, part, laser);
-    this.particles.burst(laser.x, laser.y, 'vermilion', 5, 140, 0.3);
-    this.events.publish('boss-hit', true);
+    this.arena.particles.burst(laser.x, laser.y, 'vermilion', 5, 140, 0.3);
+    this.arena.events.publish('boss-hit', true);
     if (wound.dead) return this.#slay(boss, part);
     if (wound.phaseChanged) this.#shudder(boss, part);
   }
 
   #glance(boss, part, laser) {
     boss.glance(part);
-    this.particles.burst(laser.x, laser.y, 'wash', 3, 90, 0.2);
-    this.events.publish('boss-hit', false);
+    this.arena.particles.burst(laser.x, laser.y, 'wash', 3, 90, 0.2);
+    this.arena.events.publish('boss-hit', false);
   }
 
   #shudder(boss, { x, y }) {
-    this.jolt(HIT_STOP.phase, 0);
-    this.effects.ring(x, y, 'vermilion', 90);
-    this.effects.stain(x, y, 1.4);
-    this.powerups.drop(this.ship.x, y + 80);
-    if (!this.calm()) boss.startle();
+    const { impact, effects, powerups, ship, calm } = this.arena;
+    impact.jolt(HIT_STOP.phase);
+    effects.ring(x, y, 'vermilion', 90);
+    effects.stain(x, y, 1.4);
+    powerups.drop(ship.x, y + 80);
+    if (!calm()) boss.startle();
   }
 
   #brace(boss) {
-    const shield = { active: true, x: this.ship.x, y: this.ship.y, radius: SHIELD };
+    const { ship } = this.arena;
+    const shield = { active: true, x: ship.x, y: ship.y, radius: SHIELD };
     eachCollision([shield], boss.parts, (_, part) => {
       const dx = shield.x - part.x;
       const dy = shield.y - part.y;
       const distance = Math.hypot(dx, dy) || 1;
       const push = (shield.radius + part.radius - distance) / distance;
-      this.ship.nudge({ x: dx * push, y: dy * push });
+      ship.nudge({ x: dx * push, y: dy * push });
     });
   }
 
   #slay(boss, { x, y }) {
-    const result = this.session.defeatBoss();
+    const { session, impact, powerups, effects, events } = this.arena;
+    const result = session.defeatBoss();
     for (const part of boss.parts) part.active = false;
     this.boss = null;
     this.wreck = boss;
-    this.jolt(HIT_STOP.defeat, 20);
-    this.powerups.drop(x, y + 60);
-    this.effects.label(x, y + 70, `+${result.awarded.toLocaleString()}`, 'vermilion', 34);
-    this.events.publish('boss-down', boss);
-    this.conquered(result);
+    impact.jolt(HIT_STOP.defeat, 20);
+    powerups.drop(x, y + 60);
+    effects.label(x, y + 70, `+${result.awarded.toLocaleString()}`, 'vermilion', 34);
+    events.publish('boss-down', boss);
+    this.arena.celebrate(result);
+    this.conquered();
   }
 
   #crumble(dt) {
@@ -102,8 +107,9 @@ export default class BossFight {
   }
 
   #splatter(part, remaining) {
-    this.particles.burst(part.x, part.y, 'ink', 10, 200, 0.6);
-    if (remaining % 3 === 0) this.effects.stain(part.x, part.y, part.radius / 18);
-    if (part.weak) this.effects.ring(part.x, part.y, 'ink', 120);
+    const { particles, effects } = this.arena;
+    particles.burst(part.x, part.y, 'ink', 10, 200, 0.6);
+    if (remaining % 3 === 0) effects.stain(part.x, part.y, part.radius / 18);
+    if (part.weak) effects.ring(part.x, part.y, 'ink', 120);
   }
 }

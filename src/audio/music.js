@@ -22,6 +22,7 @@ export default class Music {
     this.voices = new Voices(mixer, () => mixer.music);
     this.timer = null;
     this.intensity = 1;
+    this.fighting = false;
   }
 
   start() {
@@ -29,8 +30,6 @@ export default class Music {
     this.stop();
     this.#routing();
     this.#volume(VOLUME);
-    this.intensity = 1;
-    this.fighting = false;
     this.step = 0;
     this.nextNote = this.mixer.now + 0.05;
     this.timer = setInterval(() => this.#schedule(), 25);

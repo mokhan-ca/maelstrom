@@ -1,5 +1,6 @@
 import { BOSSES, WORLD } from '../../config.js';
 import { COLORS } from '../../render/palette.js';
+import { part } from '../boss.js';
 import { lerp, ease, clearOf, fan } from './motion.js';
 
 const OCTOPUS = BOSSES.octopus;
@@ -43,12 +44,12 @@ const tip = ({ segments }) => segments[segments.length - 1];
 
 const segment = (index) => {
   const radius = 18 - index * 0.6;
-  return { active: true, weak: false, sprite: 'tentacle', radius, scale: radius / 16, rotation: 0, x: 0, y: 0 };
+  return part({ sprite: 'tentacle', radius, scale: radius / 16 });
 };
 
 export default class Octopus {
   enter(boss) {
-    this.head = { active: true, weak: true, sprite: 'octopusHead', radius: HEAD.radius, scale: 1, rotation: 0, x: WORLD.width / 2, y: -90 };
+    this.head = part({ sprite: 'octopusHead', radius: HEAD.radius, weak: true, x: WORLD.width / 2, y: -90 });
     this.arms = ROOTS.map((offset, index) => ({
       offset,
       side: Math.sign(offset),
@@ -73,7 +74,7 @@ export default class Octopus {
     for (const arm of this.arms) this.#swing(arm, dt);
     this.#lay(boss);
     for (const arm of this.arms.filter(lashed)) this.#lash(arm, boss, world);
-    if (this.#idle) this.cooldown -= dt;
+    if (this.#idle && boss.poised) this.cooldown -= dt;
     if (this.cooldown <= 0 && boss.ready(world)) this.#attack(boss, world);
   }
 
@@ -119,11 +120,11 @@ export default class Octopus {
       const { angle, length, curl } = pose(arm, boss.age);
       let x = this.head.x + arm.offset;
       let y = this.head.y + SHOULDER;
-      for (const [index, part] of arm.segments.entries()) {
+      for (const [index, segment] of arm.segments.entries()) {
         const heading = angle + arm.side * curl * (index / ARM.segments);
         x += Math.sin(heading) * (length / ARM.segments);
         y += Math.cos(heading) * (length / ARM.segments);
-        Object.assign(part, { x, y, rotation: -heading });
+        Object.assign(segment, { x, y, rotation: -heading });
       }
     }
   }

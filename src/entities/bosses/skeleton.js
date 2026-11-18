@@ -1,5 +1,6 @@
 import { BOSSES, WORLD } from '../../config.js';
 import { COLORS } from '../../render/palette.js';
+import { part } from '../boss.js';
 import { lerp, ease, clamp, clearOf, fan } from './motion.js';
 
 const SKELETON = BOSSES.skeleton;
@@ -35,12 +36,12 @@ const rain = (x, bullets) => {
 
 export default class Skeleton {
   enter(boss) {
-    this.skull = { active: true, weak: true, sprite: 'skull', radius: SKULL.radius, scale: 1, rotation: 0, x: WORLD.width / 2, y: -90 };
+    this.skull = part({ sprite: 'skull', radius: SKULL.radius, weak: true, x: WORLD.width / 2, y: -90 });
     this.hands = [-1, 1].map((side) => ({
       side,
       move: null,
       flinch: 0,
-      part: { active: true, weak: false, sprite: 'hand', radius: HAND.radius, scale: 1, rotation: 0, x: WORLD.width / 2 + side * HAND.reach, y: -90 },
+      part: part({ sprite: 'hand', radius: HAND.radius, x: WORLD.width / 2 + side * HAND.reach, y: -90 }),
     }));
     this.turn = 0;
     this.regroup(boss);
@@ -64,7 +65,7 @@ export default class Skeleton {
   update(boss, dt, world) {
     this.#hover(boss);
     for (const hand of this.hands) this.#tend(hand, boss, dt, world);
-    if (this.#idle) this.cooldown -= dt;
+    if (this.#idle && boss.poised) this.cooldown -= dt;
     if (this.cooldown <= 0 && boss.ready(world)) this.#attack(boss, world);
   }
 

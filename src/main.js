@@ -67,8 +67,8 @@ const remember = () => save('best', session.best);
 const start = () => {
   mixer.unlock();
   previousBest = session.best;
-  music.start();
   play.start(startingWave());
+  music.start();
   show('playing');
   hud.toast(`Wave ${session.wave}`);
   hint();
@@ -102,6 +102,7 @@ const resume = () => {
 
 const quit = () => {
   remember();
+  hud.render(session, play.ship, null);
   music.stop();
   showBest();
   show('title');
@@ -109,6 +110,7 @@ const quit = () => {
 
 const finish = () => {
   remember();
+  hud.render(session, play.ship, null);
   $('final-wave').textContent = session.wave;
   $('final-best').textContent = session.best.toLocaleString();
   $('new-best').hidden = session.score <= previousBest;
@@ -225,7 +227,11 @@ events.subscribe('wave', (wave) => {
   music.intensify(wave);
   paper.speed = 1 + (wave - 1) * 0.15;
 });
-events.subscribe('start', () => (paper.speed = 1));
+events.subscribe('start', () => {
+  paper.speed = 1;
+  music.intensify(session.wave);
+  music.battle(false);
+});
 events.subscribe('game-over', () => {
   sfx.gameOver();
   music.fadeOut();

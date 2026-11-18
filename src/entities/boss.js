@@ -2,6 +2,8 @@ import { BOSSES } from '../config.js';
 import { sprites, draw } from '../render/sprites.js';
 
 const PHASES = [2 / 3, 1 / 3];
+
+export const part = ({ sprite, radius, weak = false, scale = 1, x = 0, y = 0 }) => ({ active: true, weak, sprite, radius, scale, rotation: 0, x, y });
 const RECOIL = 0.2;
 const CRUMBLE_EVERY = 0.06;
 
@@ -44,8 +46,12 @@ export default class Boss {
     return this.recoil / RECOIL;
   }
 
+  get poised() {
+    return !this.entering && !this.dead;
+  }
+
   ready({ ship }) {
-    return !this.entering && !this.dead && ship.active;
+    return this.poised && ship.active;
   }
 
   update(dt, world) {

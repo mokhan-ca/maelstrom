@@ -77,9 +77,10 @@ export default class Sfx {
   }
 
   bossHit(weak) {
+    if (weak) return this.#play(knock);
     if (!this.mixer.ready || this.mixer.now < this.quietUntil) return;
     this.quietUntil = this.mixer.now + 0.07;
-    this.#play((voices, time) => (weak ? knock(voices, time) : tick(voices, time)));
+    this.#play(tick);
   }
 
   bossDown() {

@@ -1,6 +1,7 @@
 import { BOSSES, WORLD } from '../../config.js';
 import { COLORS } from '../../render/palette.js';
-import { lerp, ease, clamp, fan } from './motion.js';
+import { lerp, ease, clamp, clearOf, fan } from './motion.js';
+import { part } from '../boss.js';
 
 const DRAGON = BOSSES.dragon;
 const { body: BODY, orbit: ORBIT, fence: FENCE, telegraph: TELEGRAPH } = DRAGON;
@@ -14,23 +15,19 @@ const fenced = ({ x, y }) => ({
 
 const scale = (index) => {
   const tail = index === BODY.segments - 1;
-  return {
-    active: true,
-    weak: false,
+  return part({
     sprite: tail ? 'dragonTail' : 'dragonScale',
     radius: tail ? BODY.tail : BODY.radius,
-    scale: 1,
-    rotation: 0,
     x: LAIR.x,
     y: LAIR.y - (index + 1) * BODY.spacing,
-  };
+  });
 };
 
 const facing = (from, to) => -Math.atan2(to.x - from.x, to.y - from.y);
 
 export default class Dragon {
   enter(boss) {
-    this.head = { active: true, weak: true, sprite: 'dragonHead', radius: DRAGON.head.radius, scale: 1, rotation: 0, ...LAIR };
+    this.head = part({ sprite: 'dragonHead', radius: DRAGON.head.radius, weak: true, ...LAIR });
     this.body = Array.from({ length: BODY.segments }, (_, index) => scale(index));
     this.angle = -Math.PI / 2;
     this.orbit = ORBIT.radius;
@@ -94,13 +91,12 @@ export default class Dragon {
     if (this.breath === null) return this.#wait(boss, dt, world);
     this.breath += dt;
     if (this.breath < TELEGRAPH) return;
-    this.breath = null;
-    this.cooldown = DRAGON.gap / boss.pace;
-    if (boss.ready(world)) fan(this.head, world, { ...DRAGON.breath, drops: DRAGON.breath.drops[boss.phase - 1] });
+    this.regroup(boss);
+    if (boss.ready(world) && clearOf(this.head, world.vortex)) fan(this.head, world, { ...DRAGON.breath, drops: DRAGON.breath.drops[boss.phase - 1] });
   }
 
   #wait(boss, dt, world) {
-    this.cooldown -= dt;
+    if (boss.poised) this.cooldown -= dt;
     if (this.cooldown <= 0 && boss.ready(world)) this.breath = 0;
   }
 

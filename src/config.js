@@ -113,7 +113,7 @@ export const BOSSES = {
     speed: 160,
     head: { radius: 34 },
     body: { segments: 12, radius: 18, tail: 14, spacing: 30 },
-    orbit: { radius: 170, tight: 120 },
+    orbit: { radius: 210, tight: 160 },
     fence: { top: 200, bottom: 600, side: 60 },
     breath: { drops: [1, 3, 5], speed: 220, spread: 0.2 },
   },

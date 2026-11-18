@@ -238,14 +238,15 @@ describe('the ink dragon', () => {
   });
 
   it('coils tighter in its last phase', () => {
-    let calm = 0;
-    let cornered = 0;
-    fight(0, 20, (boss, arena) => (calm = coiledAround(boss, arena)));
-    fight(0, 20, (boss, arena) => {
-      boss.hp = 1;
-      cornered = coiledAround(boss, arena);
-    });
-    expect(cornered).toBeLessThan(calm);
+    const average = (wounded) => {
+      const distances = [];
+      fight(0, 30, (boss, arena) => {
+        if (wounded) boss.hp = 1;
+        if (boss.age > 10) distances.push(coiledAround(boss, arena));
+      });
+      return distances.reduce((sum, distance) => sum + distance, 0) / distances.length;
+    };
+    expect(average(true)).toBeLessThan(average(false));
   });
 
   it('warns for the same time at every tier', () => {
@@ -259,8 +260,12 @@ describe('the ink dragon', () => {
   });
 
   it('holds its fire when the ship is struck', () => {
-    const { boss } = fight(0, BOSSES.entrance + BOSSES.dragon.gap + 0.1);
-    boss.regroup();
-    expect(boss.behaviour.breath).toBeNull();
+    let held = 'never breathed';
+    fight(0, 8, (boss) => {
+      if (held !== 'never breathed' || boss.behaviour.breath === null) return;
+      boss.regroup();
+      held = boss.behaviour.breath;
+    });
+    expect(held).toBeNull();
   });
 });

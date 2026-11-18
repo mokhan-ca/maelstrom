@@ -73,7 +73,7 @@ export const VORTEX = {
 
 export const BOSSES = {
   every: 5,
-  roster: ['octopus', 'skeleton'],
+  roster: ['octopus', 'skeleton', 'dragon'],
   entrance: 2,
   fodderInterval: 3,
   tier: { hp: 0.25, maxHp: 1.75, pace: 0.15, maxPace: 1.45 },
@@ -104,5 +104,17 @@ export const BOSSES = {
     hand: { radius: 30, reach: 150, rest: 300, raised: 260, floor: 620, column: 70, apart: 170 },
     shards: { drops: 5, speed: 300 },
     jaw: { drops: 5, speed: 200, spread: 0.18 },
+  },
+  dragon: {
+    hp: 160,
+    points: 25000,
+    gap: 1.8,
+    telegraph: 0.6,
+    speed: 160,
+    head: { radius: 34 },
+    body: { segments: 12, radius: 18, tail: 14, spacing: 30 },
+    orbit: { radius: 170, tight: 120 },
+    fence: { top: 200, bottom: 600, side: 60 },
+    breath: { drops: [1, 3, 5], speed: 220, spread: 0.2 },
   },
 };

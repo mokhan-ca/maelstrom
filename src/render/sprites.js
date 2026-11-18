@@ -109,6 +109,28 @@ const hand = (brush) => {
   }
 };
 
+const dragonHead = (brush) => {
+  const skull = [[-16, -26], [16, -26], [22, -6], [14, 22], [0, 32], [-14, 22], [-22, -6]];
+  for (const side of [-1, 1]) {
+    brush.stroke([[side * 12, -24], [side * 20, -36], [side * 15, -41]], { color: ink, width: 3 });
+    brush.stroke([[side * 8, 24], [side * 22, 30], [side * 29, 22]], { color: ink, width: 1.6, passes: 2 });
+  }
+  brush.fill(skull, indigo, 0.95);
+  brush.stroke([...skull, skull[0]], { color: ink, width: 2.6 });
+  eye(brush, 10, -4);
+};
+
+const dragonScale = (brush) => {
+  brush.blot(0, 0, 16, ink, 0.92);
+  for (const y of [-5, 4]) brush.stroke([[-9, y + 3], [0, y - 3], [9, y + 3]], { color: indigo, width: 2.4, passes: 2 });
+};
+
+const dragonTail = (brush) => {
+  const fin = [[0, -14], [12, 4], [4, 10], [0, 19], [-4, 10], [-12, 4]];
+  brush.fill(fin, ink, 0.92);
+  brush.stroke([[0, -10], [0, 15]], { color: indigo, width: 1.6, passes: 1 });
+};
+
 const tentacle = (brush) => {
   brush.blot(0, 0, 15, ink, 0.9);
   brush.blot(-5, 5, 3, paper, 0.75);
@@ -168,6 +190,9 @@ export function sprites() {
     tentacle: paint(34, 34, tentacle),
     skull: paint(66, 76, skull),
     hand: paint(48, 60, hand),
+    dragonHead: paint(64, 84, dragonHead),
+    dragonScale: paint(40, 40, dragonScale),
+    dragonTail: paint(32, 44, dragonTail),
     dots: Object.fromEntries(Object.entries(COLORS).map(([name, color]) => [name, paint(6, 6, droplet(color))])),
   };
   return cache;

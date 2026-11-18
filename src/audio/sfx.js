@@ -1,12 +1,20 @@
 import Voices from './voices.js';
 import { note } from './scale.js';
 
+const knock = (voices, time) => {
+  voices.tone({ type: 'triangle', from: 880, to: 620, time, length: 0.05, volume: 0.28 });
+  voices.noise({ type: 'bandpass', from: 1800, time, length: 0.02, volume: 0.18, q: 5 });
+};
+
+const tick = (voices, time) => voices.tone({ type: 'triangle', from: 220, to: 160, time, length: 0.03, volume: 0.12 });
+
 export default class Sfx {
   constructor(mixer, rng = Math.random) {
     this.mixer = mixer;
     this.rng = rng;
     this.voices = new Voices(mixer, () => mixer.sfx);
     this.splats = [];
+    this.quietUntil = 0;
   }
 
   laser() {
@@ -66,6 +74,12 @@ export default class Sfx {
         at += 0.2 - beat * 0.018;
       }
     });
+  }
+
+  bossHit(weak) {
+    if (!this.mixer.ready || this.mixer.now < this.quietUntil) return;
+    this.quietUntil = this.mixer.now + 0.07;
+    this.#play((voices, time) => (weak ? knock(voices, time) : tick(voices, time)));
   }
 
   bossDown() {

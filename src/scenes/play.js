@@ -164,6 +164,7 @@ export default class Play {
     const wound = part.weak && boss.damage();
     if (!wound) return this.#glance(boss, part, laser);
     this.particles.burst(laser.x, laser.y, 'vermilion', 5, 140, 0.3);
+    this.events.publish('boss-hit', true);
     if (wound.dead) return this.#slay(boss, part);
     if (wound.phaseChanged) this.#shudder(boss, part);
   }
@@ -171,6 +172,7 @@ export default class Play {
   #glance(boss, part, laser) {
     boss.glance(part);
     this.particles.burst(laser.x, laser.y, 'wash', 3, 90, 0.2);
+    this.events.publish('boss-hit', false);
   }
 
   #shudder(boss, { x, y }) {

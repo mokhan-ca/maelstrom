@@ -7,6 +7,7 @@ const LOOKAHEAD = 0.15;
 const VOLUME = 0.4;
 
 const ODAIKO = [1, 0, 0, 0, 0, 0, 0.6, 0, 0.8, 0, 0, 0.5, 0, 0, 0, 0];
+const BATTLE = [1, 0, 0, 0, 0.9, 0, 0.6, 0, 1, 0, 0, 0.5, 0.9, 0, 0.4, 0];
 const SHIME = [0, 0, 0, 0, 1, 0, 0, 0, 0, 0, 0, 0, 1, 0, 0.6, 0];
 const SHIME_FAST = [0.5, 0, 0.4, 0, 1, 0, 0.4, 0.3, 0.5, 0, 0.4, 0, 1, 0.3, 0.6, 0.4];
 const STRINGS = [0, null, null, 2, null, null, 1, null, 0, null, null, 3, null, 2, null, null];
@@ -29,6 +30,7 @@ export default class Music {
     this.#routing();
     this.#volume(VOLUME);
     this.intensity = 1;
+    this.fighting = false;
     this.step = 0;
     this.nextNote = this.mixer.now + 0.05;
     this.timer = setInterval(() => this.#schedule(), 25);
@@ -59,6 +61,10 @@ export default class Music {
 
   intensify(wave) {
     this.intensity = wave;
+  }
+
+  battle(fighting) {
+    this.fighting = fighting;
   }
 
   #volume(value) {
@@ -93,7 +99,8 @@ export default class Music {
     const restless = this.intensity >= 3;
     const soaring = this.intensity >= 5;
 
-    if (ODAIKO[beat]) this.#odaiko(time, ODAIKO[beat]);
+    const odaiko = this.fighting ? BATTLE : ODAIKO;
+    if (odaiko[beat]) this.#odaiko(time, odaiko[beat]);
     const shime = restless ? SHIME_FAST : SHIME;
     if (shime[beat]) this.#shime(time, shime[beat]);
     if (stirring && beat === 0 && bar % 2 === 0) this.#drone(time);

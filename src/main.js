@@ -24,6 +24,7 @@ const BESTIARY = {
   zigzag: ['Koi', 'weaves side to side.'],
   shooter: ['Lantern ghost', 'stops, stares, then spits ink at you.'],
   octopus: ['Ink octopus', 'guards its eye with sweeping arms. Strike the eye.'],
+  dragon: ['Ink dragon', 'coils around the maelstrom. Its body is a wall; strike the eye on its head.'],
   skeleton: ['Gashadokuro', 'slams where its shadow falls. Pound a falling hand to stop it. Strike the eye.'],
 };
 
@@ -66,8 +67,8 @@ const remember = () => save('best', session.best);
 const start = () => {
   mixer.unlock();
   previousBest = session.best;
-  play.start(startingWave());
   music.start();
+  play.start(startingWave());
   show('playing');
   hud.toast(`Wave ${session.wave}`);
   hint();
@@ -189,13 +190,16 @@ events.subscribe('boss', ({ type, tier }) => {
   hud.nameBoss(name);
   hud.announce(`${name} arrives`);
   sfx.bossArrives();
+  music.battle(true);
 });
 events.subscribe('boss-down', ({ type }) => {
   const [name] = BESTIARY[type];
   hud.toast(`${name} defeated`, 2);
   hud.announce(`${name} defeated`);
   sfx.bossDown();
+  music.battle(false);
 });
+events.subscribe('boss-hit', (weak) => sfx.bossHit(weak));
 events.subscribe('expire', (power) => {
   sfx.expire();
   hud.toast(`${power} faded`, 0.8);

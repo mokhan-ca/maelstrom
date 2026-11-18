@@ -1,3 +1,5 @@
+import pluck from './pluck.js';
+
 export default class Mixer {
   constructor({ muted = false } = {}) {
     this.muted = muted;
@@ -35,6 +37,12 @@ export default class Mixer {
     return this.context.currentTime;
   }
 
+  string(frequency) {
+    this.strings ??= new Map();
+    if (!this.strings.has(frequency)) this.strings.set(frequency, this.#buffer(pluck({ sampleRate: this.context.sampleRate, frequency })));
+    return this.strings.get(frequency);
+  }
+
   noise(seconds = 1) {
     this.noiseBuffer ??= this.#whiteNoise(seconds);
     return this.noiseBuffer;
@@ -70,6 +78,12 @@ export default class Mixer {
     source.buffer = this.context.createBuffer(1, 1, 22050);
     source.connect(this.context.destination);
     source.start(0);
+  }
+
+  #buffer(samples) {
+    const buffer = this.context.createBuffer(1, samples.length, this.context.sampleRate);
+    buffer.copyToChannel(samples, 0);
+    return buffer;
   }
 
   #whiteNoise(seconds) {

@@ -73,6 +73,11 @@ export default class Ship {
     if (this.visible) draw(ctx, sprites().ship, this.x, this.y);
   }
 
+  nudge({ x, y }) {
+    this.x = clamp(this.x + x, SHIP.halfWidth, WORLD.width - SHIP.halfWidth);
+    this.y = clamp(this.y + y, SHIP.halfWidth * 3, WORLD.height - SHIP.bottomMargin);
+  }
+
   #wearOff(dt) {
     const expired = [];
     for (const [power, remaining] of Object.entries(this.powers)) {
@@ -86,8 +91,10 @@ export default class Ship {
     const { x, y } = input.axis;
     const drag = input.takeDrag();
     const [lastX, lastY] = [this.x, this.y];
-    this.x = clamp(this.x + x * SHIP.speed * dt + drag.x * SHIP.touchSensitivity, SHIP.halfWidth, WORLD.width - SHIP.halfWidth);
-    this.y = clamp(this.y + y * SHIP.speed * dt + drag.y * SHIP.touchSensitivity, SHIP.halfWidth * 3, WORLD.height - SHIP.bottomMargin);
+    this.nudge({
+      x: x * SHIP.speed * dt + drag.x * SHIP.touchSensitivity,
+      y: y * SHIP.speed * dt + drag.y * SHIP.touchSensitivity,
+    });
     this.vx = (this.x - lastX) / dt;
     this.vy = (this.y - lastY) / dt;
   }

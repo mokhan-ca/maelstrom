@@ -21,6 +21,14 @@ export default class Projectiles {
     }
   }
 
+  drift(vortex, dt, weight) {
+    for (const shot of this.pool) {
+      const { x, y } = vortex.pull(shot, dt, weight);
+      shot.x += x;
+      shot.y += y;
+    }
+  }
+
   draw(ctx) {
     for (const shot of this.pool) draw(ctx, this.sprite(), shot.x, shot.y, shot.rotation);
   }

@@ -1,4 +1,4 @@
-import { SHIP, WAVES, COMBO, ENEMIES } from './config.js';
+import { SHIP, WAVES, COMBO, ENEMIES, VORTEX } from './config.js';
 
 export default class Session {
   constructor({ best = 0 } = {}) {
@@ -23,9 +23,9 @@ export default class Session {
     return Math.min(COMBO.maxMultiplier, 1 + Math.floor(this.streak / COMBO.killsPerStep));
   }
 
-  registerKill(type) {
+  registerKill(type, { swallowed = false } = {}) {
     const before = this.multiplier;
-    const awarded = ENEMIES[type].points * before;
+    const awarded = ENEMIES[type].points * before * (swallowed ? VORTEX.bonusMultiplier : 1);
     this.streak++;
     this.kills++;
     this.waveKills++;

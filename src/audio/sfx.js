@@ -31,6 +31,10 @@ export default class Sfx {
       this.#tone({ type: 'square', from: note, to: note, seconds: 0.1, volume: 0.12, delay: index * 0.08 }));
   }
 
+  swallow() {
+    this.#noise({ from: 3000, to: 120, seconds: 0.5, volume: 0.3 });
+  }
+
   charge() {
     this.#tone({ type: 'sine', from: 200, to: 800, seconds: 0.25, volume: 0.12 });
   }

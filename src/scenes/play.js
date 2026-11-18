@@ -1,4 +1,4 @@
-import { BULLET, WORLD, WAVES, SHIP } from '../config.js';
+import { BULLET, WORLD, WAVES, SHIP, VORTEX } from '../config.js';
 import { eachCollision } from '../engine/collision.js';
 import { sprites } from '../render/sprites.js';
 import Ship from '../entities/ship.js';
@@ -7,6 +7,8 @@ import Projectiles from '../entities/projectiles.js';
 import Powerups from '../entities/powerups.js';
 import Particles from '../entities/particles.js';
 import Effects from '../entities/effects.js';
+import Vortex from '../entities/vortex.js';
+import { recentlyStruck } from '../entities/enemies.js';
 
 const HIT_STOP = { kill: 0.03, shooter: 0.07, hurt: 0.12 };
 const DEATH_SLOWDOWN = 0.35;
@@ -26,6 +28,7 @@ export default class Play {
     this.powerups = new Powerups(rng);
     this.particles = new Particles(rng);
     this.effects = new Effects();
+    this.vortex = new Vortex();
     this.freeze = 0;
     this.shake = 0;
     this.flash = 0;
@@ -37,6 +40,7 @@ export default class Play {
     for (const group of [this.enemies, this.lasers, this.bullets, this.particles, this.effects]) group.clear();
     this.powerups.reset();
     this.ship.reset();
+    this.vortex.reset();
     this.spawnIn = 1;
     this.ended = 0;
     this.events.publish('start', this.session);
@@ -55,14 +59,18 @@ export default class Play {
       this.#play(dt, input);
     }
 
-    this.enemies.update(dt, { ship: this.ship, bullets: this.bullets, speed: this.session.speedMultiplier, escaped: () => this.#escaped(), charging: () => this.events.publish('charge') });
+    this.vortex.update(dt);
+    this.enemies.update(dt, this.#world);
+    this.bullets.drift(this.vortex, dt, VORTEX.weights.bullet);
     for (const group of [this.lasers, this.bullets, this.powerups, this.particles, this.effects]) group.update(dt);
     if (!this.session.over) this.#collide();
+    if (!this.session.over) this.#churn();
     this.shake = Math.max(0, this.shake - dt * 30);
     this.flash = Math.max(0, this.flash - dt * 2.5);
   }
 
   draw(ctx) {
+    this.vortex.draw(ctx);
     ctx.globalCompositeOperation = 'lighter';
     this.particles.draw(ctx);
     this.powerups.draw(ctx);
@@ -85,11 +93,56 @@ export default class Play {
   }
 
   #play(dt, input) {
-    if (this.session.tick(dt)) this.events.publish('wave', this.session.wave);
+    if (this.session.tick(dt)) this.#nextWave();
     for (const power of this.ship.update(dt, input)) this.events.publish('expire', power);
+    this.ship.nudge(this.vortex.pull(this.ship, dt, VORTEX.weights.ship));
     if (input.firing && this.ship.canFire) this.#fire();
     this.#trail();
     this.#spawn(dt);
+  }
+
+  get #world() {
+    return {
+      ship: this.ship,
+      bullets: this.bullets,
+      vortex: this.vortex,
+      speed: this.session.speedMultiplier,
+      escaped: () => this.#escaped(),
+      charging: () => this.events.publish('charge'),
+    };
+  }
+
+  #nextWave() {
+    const { wave } = this.session;
+    const stirring = !this.vortex.active;
+    this.vortex.awaken(wave);
+    this.events.publish('wave', wave);
+    if (stirring && this.vortex.active) this.events.publish('maelstrom');
+  }
+
+  #churn() {
+    for (const enemy of this.enemies) {
+      if (this.vortex.swallows(enemy)) this.#swallow(enemy);
+    }
+    for (const bullet of this.bullets) {
+      if (this.vortex.swallows(bullet)) bullet.active = false;
+    }
+    if (this.ship.vulnerable && this.vortex.swallows(this.ship)) this.#hurt();
+  }
+
+  #swallow(enemy) {
+    enemy.active = false;
+    this.effects.ring(enemy.x, enemy.y, 'violet', 30);
+    this.events.publish('swallow', enemy);
+    if (!recentlyStruck(enemy)) return;
+    const result = this.session.registerKill(enemy.type, { swallowed: true });
+    this.effects.label(enemy.x, enemy.y, `+${result.awarded}`, 'yellow');
+    this.#celebrate(result);
+  }
+
+  #celebrate({ extraLife, comboUp }) {
+    if (extraLife) this.events.publish('extra-life', this.session.lives);
+    if (comboUp) this.events.publish('combo', this.session.multiplier);
   }
 
   #frozen(dt) {
@@ -166,8 +219,7 @@ export default class Play {
     this.powerups.maybeDrop(enemy.x, enemy.y, this.session.kills);
     this.shake = Math.max(this.shake, enemy.type === 'shooter' ? 10 : 5);
     this.events.publish('kill', { ...result, enemy });
-    if (result.extraLife) this.events.publish('extra-life', this.session.lives);
-    if (result.comboUp) this.events.publish('combo', this.session.multiplier);
+    this.#celebrate(result);
   }
 
   #escaped() {

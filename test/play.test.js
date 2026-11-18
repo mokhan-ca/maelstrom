@@ -65,3 +65,51 @@ describe('Play stakes', () => {
     expect([...play.powerups]).toHaveLength(1);
   });
 });
+
+describe('the maelstrom', () => {
+  let session;
+  let events;
+  let play;
+  let enemy;
+
+  const intoTheCore = () => {
+    play.vortex.awaken(2);
+    play.vortex.update(2);
+    play.enemies.spawn('drifter', 1);
+    [enemy] = play.enemies;
+    Object.assign(enemy, { x: play.vortex.x, y: play.vortex.y, vx: 0, vy: 0 });
+  };
+
+  beforeEach(() => {
+    session = new Session();
+    events = new EventAggregator();
+    play = new Play({ session, events, rng: () => 0.5 });
+    play.start();
+    play.ship.y = 900;
+  });
+
+  it('swallows an untouched enemy for nothing but keeps the combo', () => {
+    session.streak = 10;
+    intoTheCore();
+    play.update(1 / 60, idle);
+    expect(enemy.active).toBe(false);
+    expect(session.score).toBe(0);
+    expect(session.streak).toBe(10);
+  });
+
+  it('pays double for an enemy you struck before it was swallowed', () => {
+    intoTheCore();
+    enemy.hp = 2;
+    play.enemies.damage(enemy);
+    play.update(1 / 60, idle);
+    expect(session.score).toBe(200);
+  });
+
+  it('announces when it first stirs', () => {
+    let stirred = false;
+    events.subscribe('maelstrom', () => (stirred = true));
+    session.waveKills = 1000;
+    play.update(1 / 60, idle);
+    expect(stirred).toBe(true);
+  });
+});

@@ -56,3 +56,17 @@ export const POWERUPS = {
 };
 
 export const PARTICLES = { max: 700 };
+
+export const VORTEX = {
+  fromWave: 2,
+  reach: 150,
+  core: 22,
+  baseSpeed: 60,
+  speedPerWave: 8,
+  maxSpeed: 110,
+  swirl: 0.6,
+  bonusWindow: 1.5,
+  bonusMultiplier: 2,
+  path: { x: 165, y: 210, centerY: 350, speedX: 0.13, speedY: 0.21 },
+  weights: { ship: 0.35, enemy: 1, bullet: 0.8 },
+};

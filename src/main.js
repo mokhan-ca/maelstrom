@@ -167,6 +167,8 @@ events.subscribe('hit', () => {
   music.duck();
 });
 events.subscribe('charge', () => sfx.charge());
+events.subscribe('swallow', () => sfx.swallow());
+events.subscribe('maelstrom', () => hud.toast('The maelstrom stirs', 2.2));
 events.subscribe('expire', (power) => {
   sfx.expire();
   hud.toast(`${power} faded`, 0.8);

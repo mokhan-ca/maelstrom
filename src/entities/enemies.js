@@ -1,5 +1,5 @@
 import Pool from '../engine/pool.js';
-import { ENEMIES, WORLD } from '../config.js';
+import { ENEMIES, WORLD, VORTEX } from '../config.js';
 import { sprites, draw } from '../render/sprites.js';
 
 const clamp = (value, min, max) => Math.min(max, Math.max(min, value));
@@ -52,6 +52,18 @@ const fireAt = (enemy, { ship, bullets, speed }) => {
   enemy.winding = false;
 };
 
+const drift = (enemy, { x, y }) => {
+  if (enemy.type === 'zigzag') enemy.originX += x;
+  else enemy.x += x;
+  enemy.y += y;
+};
+
+const escaped = (enemy) => enemy.y > WORLD.height + enemy.radius * 2;
+
+const lost = (enemy) => enemy.y < -200 || enemy.x < -100 || enemy.x > WORLD.width + 100;
+
+export const recentlyStruck = (enemy) => enemy.age - enemy.struckAt < VORTEX.bonusWindow;
+
 const growth = (enemy) => (enemy.winding ? 1 + 0.4 * (1 - Math.max(0, enemy.reload) / WIND_UP) : 1);
 
 export default class Enemies {
@@ -78,6 +90,7 @@ export default class Enemies {
       station: 120 + this.rng() * 220,
       reload: 1 + this.rng(),
       winding: false,
+      struckAt: -Infinity,
       flash: 0,
     }));
   }
@@ -87,7 +100,9 @@ export default class Enemies {
       enemy.age += dt;
       enemy.flash = Math.max(0, enemy.flash - dt);
       behaviours[enemy.type](enemy, dt, world);
-      if (enemy.y > WORLD.height + enemy.radius * 2) this.#escape(enemy, world);
+      drift(enemy, world.vortex.pull(enemy, dt, VORTEX.weights.enemy));
+      if (escaped(enemy)) this.#escape(enemy, world);
+      if (lost(enemy)) enemy.active = false;
     }
   }
 
@@ -97,6 +112,7 @@ export default class Enemies {
   }
 
   damage(enemy) {
+    enemy.struckAt = enemy.age;
     enemy.hp--;
     enemy.flash = 0.08;
     if (enemy.hp <= 0) enemy.active = false;

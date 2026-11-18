@@ -2,6 +2,8 @@ import Pool from '../engine/pool.js';
 import { ENEMIES, WORLD } from '../config.js';
 import { sprites, draw } from '../render/sprites.js';
 
+const clamp = (value, min, max) => Math.min(max, Math.max(min, value));
+
 const behaviours = {
   drifter(enemy, dt) {
     enemy.x += enemy.vx * dt;
@@ -19,7 +21,7 @@ const behaviours = {
     const { lingerFor, fireInterval, bulletSpeed } = ENEMIES.shooter;
     const settled = enemy.y >= enemy.station;
     enemy.y += settled && enemy.age < lingerFor ? 0 : enemy.vy * dt;
-    enemy.x += Math.sin(enemy.age * 0.9 + enemy.phase) * 70 * dt;
+    enemy.x = clamp(enemy.x + Math.sin(enemy.age * 0.9 + enemy.phase) * 70 * dt, enemy.radius, WORLD.width - enemy.radius);
     enemy.reload -= dt;
     if (!settled || enemy.reload > 0 || !ship.active) return;
     enemy.reload = fireInterval / speed;

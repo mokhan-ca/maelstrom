@@ -44,7 +44,7 @@ export default class Play {
 
     this.enemies.update(dt, { ship: this.ship, bullets: this.bullets, speed: this.session.speedMultiplier });
     for (const group of [this.lasers, this.bullets, this.powerups, this.particles]) group.update(dt);
-    this.#collide();
+    if (!this.session.over) this.#collide();
     this.shake = Math.max(0, this.shake - dt * 30);
     this.flash = Math.max(0, this.flash - dt * 2.5);
   }
@@ -102,8 +102,6 @@ export default class Play {
       if (this.enemies.damage(enemy)) this.#destroy(enemy);
       return true;
     });
-
-    if (!this.ship.active || this.session.over) return;
 
     eachCollision([this.ship], this.powerups, (ship, powerup) => {
       powerup.active = false;

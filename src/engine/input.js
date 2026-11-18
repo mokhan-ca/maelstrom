@@ -13,6 +13,9 @@ const ACTIONS = {
   KeyM: 'mute',
 };
 const GAME_KEYS = new Set([...Object.values(AXES).flat(), ...FIRE]);
+const BUTTON_KEYS = new Set(['Enter', 'NumpadEnter', 'Space']);
+
+const pressingButton = (event) => BUTTON_KEYS.has(event.code) && event.target?.closest?.('button');
 
 export default class Input {
   constructor({ keyTarget = window, pointerTarget, worldScale = () => 1 } = {}) {
@@ -35,11 +38,13 @@ export default class Input {
       pointerTarget.addEventListener('pointermove', (event) => this.onPointerMove(event), options);
       pointerTarget.addEventListener('pointerup', (event) => this.onPointerUp(event), options);
       pointerTarget.addEventListener('pointercancel', (event) => this.onPointerUp(event), options);
+      pointerTarget.addEventListener('lostpointercapture', (event) => this.onPointerUp(event));
       pointerTarget.addEventListener('contextmenu', (event) => event.preventDefault());
     }
   }
 
   onKeydown(event) {
+    if (pressingButton(event)) return;
     if (GAME_KEYS.has(event.code) || ACTIONS[event.code]) event.preventDefault();
     if (event.repeat) return;
     this.keys.add(event.code);
@@ -116,7 +121,8 @@ export default class Input {
     return this.actions.delete(action);
   }
 
-  clearActions() {
+  reset() {
     this.actions.clear();
+    this.takeDrag();
   }
 }

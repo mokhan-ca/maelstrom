@@ -55,4 +55,26 @@ describe('Input', () => {
     pointerTarget.dispatchEvent(pointer('pointermove', 50, 50, { pointerId: 2 }));
     expect(input.takeDrag()).toEqual({ x: 0, y: 0 });
   });
+
+  it('lets focused buttons keep Enter and Space', () => {
+    const button = document.createElement('button');
+    const event = key('keydown', 'Enter');
+    Object.defineProperty(event, 'target', { value: button });
+    keyTarget.dispatchEvent(event);
+    expect(event.defaultPrevented).toBe(false);
+    expect(input.consume('confirm')).toBe(false);
+  });
+
+  it('stops firing when the pointer capture is lost', () => {
+    pointerTarget.dispatchEvent(pointer('pointerdown', 0, 0));
+    pointerTarget.dispatchEvent(pointer('lostpointercapture', 0, 0));
+    expect(input.firing).toBe(false);
+  });
+
+  it('forgets stale drags on reset', () => {
+    pointerTarget.dispatchEvent(pointer('pointerdown', 0, 0));
+    pointerTarget.dispatchEvent(pointer('pointermove', 80, 0));
+    input.reset();
+    expect(input.takeDrag()).toEqual({ x: 0, y: 0 });
+  });
 });

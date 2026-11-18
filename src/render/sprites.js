@@ -101,9 +101,7 @@ function shooter(ctx) {
 
 function laser(ctx) {
   ctx.fillStyle = COLORS.cyan;
-  ctx.beginPath();
-  ctx.roundRect(-2.5, -11, 5, 22, 2.5);
-  ctx.fill();
+  ctx.fillRect(-2.5, -11, 5, 22);
   ctx.fillStyle = COLORS.white;
   ctx.fillRect(-1, -9, 2, 18);
 }

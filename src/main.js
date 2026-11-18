@@ -36,8 +36,16 @@ let previousBest = session.best;
 const show = (name) => {
   scene = name;
   for (const [key, element] of Object.entries(overlays)) element.hidden = key !== name;
-  input.clearActions();
+  input.reset();
+  focus(overlays[name]);
 };
+
+const focus = (overlay) => {
+  document.activeElement?.blur();
+  overlay?.querySelector('.primary')?.focus({ preventScroll: true });
+};
+
+const remember = () => save('best', session.best);
 
 const start = () => {
   mixer.unlock();
@@ -51,6 +59,7 @@ const start = () => {
 
 const pause = () => {
   if (scene !== 'playing') return;
+  remember();
   show('paused');
   mixer.suspend();
 };
@@ -62,13 +71,14 @@ const resume = () => {
 };
 
 const quit = () => {
+  remember();
   music.stop();
   show('title');
 };
 
 const finish = () => {
   music.stop();
-  save('best', session.best);
+  remember();
   $('final-score').textContent = session.score.toLocaleString();
   $('final-wave').textContent = session.wave;
   $('final-best').textContent = session.best.toLocaleString();
@@ -87,6 +97,7 @@ const hint = () => {
   const element = $('hint');
   element.textContent = 'Drag anywhere to fly · hold to fire';
   element.hidden = false;
+  setTimeout(() => (element.hidden = true), 4000);
   save('hinted', true);
 };
 
@@ -99,7 +110,7 @@ $('pause').addEventListener('click', () => (scene === 'paused' ? resume() : paus
 $('mute').addEventListener('click', toggleMute);
 $('mute').setAttribute('aria-pressed', mixer.muted);
 
-window.addEventListener('keydown', () => mixer.context && mixer.resume());
+window.addEventListener('keydown', () => scene === 'playing' && mixer.resume());
 window.addEventListener('pointerdown', (event) => {
   if (event.pointerType === 'touch') input.usedTouch = true;
   if (scene === 'playing') mixer.resume();

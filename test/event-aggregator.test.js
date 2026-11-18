@@ -1,4 +1,4 @@
-import EventAggregator from '../src/event_aggregator.js';
+import EventAggregator from '../src/engine/event-aggregator.js';
 
 describe('EventAggregator', () => {
   let subject;
@@ -22,6 +22,15 @@ describe('EventAggregator', () => {
 
       subject.publish('greeting', 'hello');
       expect(called).toEqual(false);
+    });
+
+    it('lets a subscriber unsubscribe', () => {
+      let calls = 0;
+      const unsubscribe = subject.subscribe('greeting', () => calls++);
+      unsubscribe();
+
+      subject.publish('greeting');
+      expect(calls).toEqual(0);
     });
 
     it('does nothing when there are no subscribers', () => {

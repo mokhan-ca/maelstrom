@@ -2,11 +2,56 @@
 <html lang="en">
 <head>
   <meta charset="utf-8">
-  <meta name="viewport" content="width=device-width, initial-scale=1">
+  <meta name="viewport" content="width=device-width, initial-scale=1, viewport-fit=cover, user-scalable=no">
+  <meta name="theme-color" content="#05010f">
+  <meta name="description" content="A neon arcade shooter. Survive the maelstrom.">
+  <meta name="apple-mobile-web-app-capable" content="yes">
+  <meta name="mobile-web-app-capable" content="yes">
+  <meta name="apple-mobile-web-app-status-bar-style" content="black-translucent">
   <title>Maelstrom</title>
-  <link rel="stylesheet" href="/src/style.css">
+  <link rel="icon" href="/icon.svg" type="image/svg+xml">
+  <link rel="apple-touch-icon" href="/icon-180.png">
+  <link rel="manifest" href="/manifest.webmanifest">
 </head>
 <body>
+  <canvas id="screen" aria-label="Maelstrom game"></canvas>
+
+  <header class="hud" aria-live="off">
+    <div class="stat"><span class="label">Score</span><span id="score">0</span><span id="multiplier" class="multiplier"></span></div>
+    <div class="stat center"><span class="label">Wave</span><span id="wave">1</span></div>
+    <div class="stat right"><span class="label">Best</span><span id="best">0</span><span id="lives" class="lives" aria-label="Lives"></span></div>
+    <div class="buttons">
+      <button id="mute" type="button" aria-label="Toggle sound" aria-pressed="false">♪</button>
+      <button id="pause" type="button" aria-label="Pause">❚❚</button>
+    </div>
+  </header>
+
+  <div id="toast" class="toast" role="status"></div>
+  <div id="hint" class="hint" hidden></div>
+
+  <section id="title" class="overlay">
+    <h1>Maelstrom</h1>
+    <p class="tagline">Hold the line against the swarm.</p>
+    <button class="primary" data-action="start" type="button">Play</button>
+    <p class="controls keyboard">Arrows / WASD move · Space fire · P pause · M mute</p>
+    <p class="controls touch">Drag anywhere to fly · hold to fire</p>
+    <p class="note touch">Phone on silent? Turn the ringer on for sound.</p>
+  </section>
+
+  <section id="paused" class="overlay" hidden>
+    <h2>Paused</h2>
+    <button class="primary" data-action="resume" type="button">Resume</button>
+    <button data-action="quit" type="button">Quit</button>
+  </section>
+
+  <section id="over" class="overlay" hidden>
+    <h2>Game over</h2>
+    <p class="final"><span id="final-score">0</span> points · wave <span id="final-wave">1</span></p>
+    <p id="new-best" class="new-best" hidden>New best!</p>
+    <p class="final-best">Best <span id="final-best">0</span></p>
+    <button class="primary" data-action="start" type="button">Play again</button>
+  </section>
+
   <script type="module" src="/src/main.js"></script>
 </body>
 </html>

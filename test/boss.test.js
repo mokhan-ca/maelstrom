@@ -1,5 +1,6 @@
 import Boss from '../src/entities/boss.js';
 import Octopus from '../src/entities/bosses/octopus.js';
+import Skeleton from '../src/entities/bosses/skeleton.js';
 import Ship from '../src/entities/ship.js';
 import Projectiles from '../src/entities/projectiles.js';
 import Vortex from '../src/entities/vortex.js';
@@ -110,5 +111,85 @@ describe('the ink octopus', () => {
     const { boss } = fight(0, 6);
     boss.regroup();
     expect(boss.behaviour.arms.every((arm) => !arm.move)).toBe(true);
+  });
+});
+
+describe('the gashadokuro', () => {
+  const { telegraph, slam, hand: HAND } = BOSSES.skeleton;
+
+  const fight = (tier, seconds, each = () => {}) => {
+    const boss = new Boss('skeleton', tier, new Skeleton());
+    const arena = { ship: new Ship(), bullets: new Projectiles(() => null, 7), vortex: new Vortex() };
+    for (let t = 0; t < seconds; t += 1 / 60) {
+      boss.update(1 / 60, arena);
+      each(boss, arena);
+    }
+    return { boss, arena };
+  };
+
+  const shadowed = (boss) => boss.behaviour.hands.filter(({ move }) => move && move.age < telegraph + slam);
+
+  it('keeps its eye clear of the HUD and its hands above the ship', () => {
+    let lowest = 0;
+    let highestEye = Infinity;
+    fight(3, 60, (boss) => {
+      if (boss.entering) return;
+      boss.hp = 1;
+      lowest = Math.max(lowest, ...boss.parts.map((part) => part.y));
+      highestEye = Math.min(highestEye, boss.parts.find((part) => part.weak).y);
+    });
+    expect(lowest).toBeLessThanOrEqual(640);
+    expect(highestEye).toBeGreaterThanOrEqual(170);
+  });
+
+  it('leaves room between two slams', () => {
+    let narrowest = Infinity;
+    fight(0, 60, (boss) => {
+      boss.hp = 1;
+      const columns = shadowed(boss).map(({ move }) => move.x);
+      if (columns.length === 2) narrowest = Math.min(narrowest, Math.abs(columns[0] - columns[1]) - HAND.column);
+    });
+    expect(narrowest).toBeGreaterThanOrEqual(40);
+  });
+
+  it('rains bone down the column it slams', () => {
+    let target = null;
+    const { arena } = fight(0, 8, (boss) => {
+      target ??= shadowed(boss)[0]?.move.x ?? null;
+    });
+    const shards = [...arena.bullets];
+    expect(shards.length).toBeGreaterThan(0);
+    for (const shard of shards) expect(Math.abs(shard.x - target)).toBeLessThan(HAND.column / 2);
+  });
+
+  it('shrugs off a few stray shots to its hand', () => {
+    let hand = null;
+    fight(0, 8, (current) => {
+      if (hand?.move?.hits === 0) current.glance(hand.part);
+      hand ??= shadowed(current)[0] ?? null;
+    });
+    expect(hand.flinch).toBe(0);
+  });
+
+  it('flinches and calls off a slam when its hand is pounded', () => {
+    let hand = null;
+    const firstLanding = BOSSES.entrance + BOSSES.skeleton.gap + telegraph + slam;
+    const { boss, arena } = fight(0, firstLanding + 0.2, (current) => {
+      hand ??= shadowed(current)[0] ?? null;
+      if (hand?.move) current.glance(hand.part);
+    });
+    expect(hand.move).toBeNull();
+    expect([...arena.bullets]).toHaveLength(0);
+    expect(boss.hp).toBe(boss.maxHp);
+  });
+
+  it('warns for the same time at every tier', () => {
+    const firstWarning = (tier) => {
+      const frames = [];
+      fight(tier, 8, (boss) => frames.push(shadowed(boss).length > 0));
+      const start = frames.indexOf(true);
+      return frames.indexOf(false, start) - start;
+    };
+    expect(firstWarning(3)).toBe(firstWarning(0));
   });
 });

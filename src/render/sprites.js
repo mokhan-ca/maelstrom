@@ -71,10 +71,10 @@ const lanternGhost = (brush) => {
   brush.fill([[-2, 10], [3, 10], [4, 20], [0, 24], [-2, 18]], vermilion, 0.95);
 };
 
-const eye = (brush, radius) => {
-  brush.blot(0, 0, radius, paper, 1);
-  brush.blot(0, 0, radius * 0.55, vermilion, 1);
-  brush.blot(0, 0, radius * 0.22, ink, 1);
+const eye = (brush, radius, y = 0) => {
+  brush.blot(0, y, radius, paper, 1);
+  brush.blot(0, y, radius * 0.55, vermilion, 1);
+  brush.blot(0, y, radius * 0.22, ink, 1);
 };
 
 const octopusHead = (brush) => {
@@ -84,6 +84,29 @@ const octopusHead = (brush) => {
   brush.stroke([[-30, 6], [-16, 12]], { color: wash, width: 1.6, passes: 1 });
   brush.stroke([[30, 6], [16, 12]], { color: wash, width: 1.6, passes: 1 });
   eye(brush, 14);
+};
+
+const skull = (brush) => {
+  const bone = [[-30, -6], [-28, -30], [0, -40], [28, -30], [30, -6], [20, 12], [18, 30], [-18, 30], [-20, 12]];
+  brush.fill(bone, paper, 1);
+  brush.fill(bone, wash, 0.35);
+  brush.stroke([...bone, bone[0]], { color: ink, width: 3.2 });
+  brush.blot(-15, 2, 7, ink, 1);
+  brush.blot(15, 2, 7, ink, 1);
+  brush.fill([[-3, 14], [3, 14], [0, 20]], ink);
+  for (const x of [-10, -3.5, 3.5, 10]) brush.stroke([[x, 24], [x, 31]], { color: ink, width: 1.6, passes: 1 });
+  eye(brush, 10, -22);
+};
+
+const hand = (brush) => {
+  const palm = [[-18, -18], [18, -18], [20, 4], [-20, 4]];
+  brush.fill(palm, paper, 1);
+  brush.fill(palm, wash, 0.35);
+  brush.stroke([...palm, palm[0]], { color: ink, width: 3 });
+  for (const x of [-15, -5, 5, 15]) {
+    brush.stroke([[x, 4], [x * 1.1, 16], [x * 1.15, 27]], { color: ink, width: 6, passes: 2 });
+    brush.stroke([[x, 5], [x * 1.1, 16], [x * 1.15, 26]], { color: paper, width: 2.4, passes: 1, jitter: 0.4 });
+  }
 };
 
 const tentacle = (brush) => {
@@ -143,6 +166,8 @@ export function sprites() {
     splatter: paint(56, 56, splatter),
     octopusHead: paint(84, 72, octopusHead),
     tentacle: paint(34, 34, tentacle),
+    skull: paint(66, 76, skull),
+    hand: paint(48, 60, hand),
     dots: Object.fromEntries(Object.entries(COLORS).map(([name, color]) => [name, paint(6, 6, droplet(color))])),
   };
   return cache;

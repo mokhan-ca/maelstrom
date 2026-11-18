@@ -24,6 +24,7 @@ const BESTIARY = {
   zigzag: ['Koi', 'weaves side to side.'],
   shooter: ['Lantern ghost', 'stops, stares, then spits ink at you.'],
   octopus: ['Ink octopus', 'guards its eye with sweeping arms. Strike the eye.'],
+  skeleton: ['Gashadokuro', 'slams where its shadow falls. Pound a falling hand to stop it. Strike the eye.'],
 };
 
 const startingWave = () => {

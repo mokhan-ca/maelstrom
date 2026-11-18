@@ -67,6 +67,10 @@ export default class Boss {
     this.recoil = RECOIL;
   }
 
+  glance(part) {
+    this.behaviour.glance?.(this, part);
+  }
+
   regroup() {
     this.behaviour.regroup(this);
   }

@@ -1,5 +1,6 @@
-import { BOSSES, VORTEX, WORLD } from '../../config.js';
+import { BOSSES, WORLD } from '../../config.js';
 import { COLORS } from '../../render/palette.js';
+import { lerp, ease, clearOf, fan } from './motion.js';
 
 const OCTOPUS = BOSSES.octopus;
 const { head: HEAD, arm: ARM, telegraph: TELEGRAPH, sweep: SWEEP, recover: RECOVER } = OCTOPUS;
@@ -8,9 +9,6 @@ const SINGLES = [[1], [2], [0], [3]];
 const PAIRS = [[1, 2], [0, 3]];
 const RECOIL = 18;
 const SHOULDER = 24;
-
-const lerp = (from, to, t) => from + (to - from) * t;
-const ease = (t) => 1 - (1 - t) ** 3;
 
 const blend = (from, to, t) => ({
   angle: lerp(from.angle, to.angle, t),
@@ -40,15 +38,6 @@ const pose = (arm, age) => {
 const coiling = ({ move }) => (move && move.age < TELEGRAPH ? move.age / TELEGRAPH : 0);
 
 const lashed = ({ move }) => move && !move.lashed && move.age >= TELEGRAPH + SWEEP;
-
-const fan = ({ x, y }, { ship, bullets }) => {
-  const { drops, speed, spread } = OCTOPUS.flick;
-  const aim = Math.atan2(ship.y - y, ship.x - x);
-  for (let i = 0; i < drops; i++) {
-    const angle = aim + (i - (drops - 1) / 2) * spread;
-    bullets.fire(x, y, Math.cos(angle) * speed, Math.sin(angle) * speed);
-  }
-};
 
 const tip = ({ segments }) => segments[segments.length - 1];
 
@@ -141,18 +130,14 @@ export default class Octopus {
 
   #lash(arm, boss, world) {
     arm.move.lashed = true;
-    if (boss.ready(world)) fan(tip(arm), world);
+    if (boss.ready(world)) fan(tip(arm), world, OCTOPUS.flick);
   }
 
   #attack(boss, world) {
     const groups = boss.phase === 3 ? PAIRS : SINGLES;
     for (const index of groups[this.turn++ % groups.length]) this.arms[index].move = { age: 0, lashed: false };
-    if (boss.phase >= 2 && this.#clearOf(world.vortex)) this.#ring(world.bullets);
+    if (boss.phase >= 2 && clearOf(this.head, world.vortex)) this.#ring(world.bullets);
     this.cooldown = OCTOPUS.gap / boss.pace;
-  }
-
-  #clearOf(vortex) {
-    return !vortex.active || Math.hypot(this.head.x - vortex.x, this.head.y - vortex.y) > VORTEX.reach;
   }
 
   #ring(bullets) {

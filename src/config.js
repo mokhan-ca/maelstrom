@@ -73,7 +73,7 @@ export const VORTEX = {
 
 export const BOSSES = {
   every: 5,
-  roster: ['octopus'],
+  roster: ['octopus', 'skeleton'],
   entrance: 2,
   fodderInterval: 3,
   tier: { hp: 0.25, maxHp: 1.75, pace: 0.15, maxPace: 1.45 },
@@ -88,5 +88,21 @@ export const BOSSES = {
     arm: { segments: 7, rest: 150, coil: 110, reach: 380 },
     ring: { drops: 14, speed: 150 },
     flick: { drops: 3, speed: 210, spread: 0.22 },
+  },
+  skeleton: {
+    hp: 170,
+    points: 20000,
+    gap: 2.6,
+    telegraph: 0.8,
+    warn: 0.2,
+    slam: 0.25,
+    hold: 0.3,
+    recover: 0.6,
+    flinch: 1,
+    grip: 8,
+    skull: { y: 200, radius: 36, roam: 90, bob: 8 },
+    hand: { radius: 30, reach: 150, rest: 300, raised: 260, floor: 620, column: 70, apart: 170 },
+    shards: { drops: 5, speed: 300 },
+    jaw: { drops: 5, speed: 200, spread: 0.18 },
   },
 };

@@ -17,8 +17,8 @@ export default class Effects {
     this.rings.spawn((ring) => Object.assign(ring, { x, y, color: COLORS[color], radius, start, age: 0, life: 0.35 }));
   }
 
-  label(x, y, text, color = 'ink') {
-    this.labels.spawn((label) => Object.assign(label, { x, y, text, color: COLORS[color], age: 0, life: 0.8 }));
+  label(x, y, text, color = 'ink', size = 20) {
+    this.labels.spawn((label) => Object.assign(label, { x, y, text, size, color: COLORS[color], age: 0, life: size > 20 ? 1.6 : 0.8 }));
   }
 
   stain(x, y, scale = 1) {
@@ -75,12 +75,12 @@ export default class Effects {
   }
 
   #drawLabels(ctx) {
-    ctx.font = 'bold 20px "Iowan Old Style", Palatino, Georgia, serif';
     ctx.textAlign = 'center';
     ctx.textBaseline = 'middle';
     for (const label of this.labels) {
       const progress = label.age / label.life;
       ctx.globalAlpha = 1 - progress ** 2;
+      ctx.font = `bold ${label.size}px "Iowan Old Style", Palatino, Georgia, serif`;
       ctx.fillStyle = label.color;
       ctx.fillText(label.text, label.x, label.y - 28 * easeOut(progress));
     }

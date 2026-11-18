@@ -6,7 +6,7 @@ const PAD = 6;
 const VARIANTS = 3;
 const BOIL_FPS = 8;
 
-const { paper, ink, vermilion, ochre, moss, indigo } = COLORS;
+const { paper, ink, wash, vermilion, ochre, moss, indigo } = COLORS;
 
 function paint(width, height, artwork) {
   const variants = Array.from({ length: VARIANTS }, (_, variant) => {
@@ -71,6 +71,27 @@ const lanternGhost = (brush) => {
   brush.fill([[-2, 10], [3, 10], [4, 20], [0, 24], [-2, 18]], vermilion, 0.95);
 };
 
+const eye = (brush, radius) => {
+  brush.blot(0, 0, radius, paper, 1);
+  brush.blot(0, 0, radius * 0.55, vermilion, 1);
+  brush.blot(0, 0, radius * 0.22, ink, 1);
+};
+
+const octopusHead = (brush) => {
+  const dome = [[-34, 20], [-39, -4], [-30, -28], [0, -38], [30, -28], [39, -4], [34, 20], [0, 28]];
+  brush.fill(dome, ink, 0.94);
+  brush.stroke([[-26, -20], [-12, -29]], { color: wash, width: 2.4, passes: 2 });
+  brush.stroke([[-30, 6], [-16, 12]], { color: wash, width: 1.6, passes: 1 });
+  brush.stroke([[30, 6], [16, 12]], { color: wash, width: 1.6, passes: 1 });
+  eye(brush, 14);
+};
+
+const tentacle = (brush) => {
+  brush.blot(0, 0, 15, ink, 0.9);
+  brush.blot(-5, 5, 3, paper, 0.75);
+  brush.blot(5, 6, 2.4, paper, 0.75);
+};
+
 const dash = (color) => (brush) => {
   brush.stroke([[0, -10], [0.5, 0], [0, 10]], { color, width: 3.4, passes: 2, jitter: 0.6 });
 };
@@ -120,6 +141,8 @@ export function sprites() {
     rapid: paint(30, 30, seal('R')),
     shieldPickup: paint(30, 30, seal('+')),
     splatter: paint(56, 56, splatter),
+    octopusHead: paint(84, 72, octopusHead),
+    tentacle: paint(34, 34, tentacle),
     dots: Object.fromEntries(Object.entries(COLORS).map(([name, color]) => [name, paint(6, 6, droplet(color))])),
   };
   return cache;
@@ -127,8 +150,8 @@ export function sprites() {
 
 const boil = () => Math.floor(performance.now() / (1000 / BOIL_FPS)) % VARIANTS;
 
-export function draw(ctx, sprite, x, y, rotation = 0, scale = 1) {
-  const canvas = sprite.variants[boil()];
+export function draw(ctx, sprite, x, y, rotation = 0, scale = 1, variant = boil()) {
+  const canvas = sprite.variants[variant];
   const width = sprite.width * scale;
   const height = sprite.height * scale;
   if (!rotation) return ctx.drawImage(canvas, x - width / 2, y - height / 2, width, height);

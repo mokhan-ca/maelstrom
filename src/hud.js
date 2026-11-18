@@ -16,10 +16,13 @@ export default class Hud {
     this.fields = { score: $('score'), wave: $('wave'), lives: $('lives'), livesText: $('lives-text'), multiplier: $('multiplier'), powers: $('powers') };
     this.toastElement = $('toast');
     this.introElement = $('intro');
+    this.gauge = { element: $('boss'), name: $('boss-name'), bar: $('boss-bar'), fill: $('boss-fill') };
+    this.announcer = $('announce');
     this.shown = {};
   }
 
-  render(session, ship) {
+  render(session, ship, boss) {
+    this.#measure(boss);
     if (this.#set('score', session.score.toLocaleString())) this.#pulse(this.fields.score);
     this.#set('wave', session.wave);
     this.#set('lives', '▲'.repeat(session.lives));
@@ -40,6 +43,24 @@ export default class Hud {
     this.introElement.replaceChildren(heading(name), caption(description));
     this.introElement.classList.add('show');
     this.introTimer = setTimeout(() => this.introElement.classList.remove('show'), seconds * 1000);
+  }
+
+  nameBoss(name) {
+    this.gauge.name.textContent = name;
+  }
+
+  announce(text) {
+    this.announcer.textContent = text;
+  }
+
+  #measure(boss) {
+    const percent = boss ? Math.ceil(boss.fraction * 100) : null;
+    if (this.shown.boss === percent) return;
+    this.shown.boss = percent;
+    this.gauge.element.hidden = percent === null;
+    if (percent === null) return;
+    this.gauge.fill.style.transform = `scaleX(${percent / 100})`;
+    this.gauge.bar.setAttribute('aria-valuenow', percent);
   }
 
   #set(name, value) {

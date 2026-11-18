@@ -18,19 +18,19 @@ export default class Powerups {
   }
 
   maybeDrop(x, y, kills) {
-    if (this.#lucky(kills)) this.#drop(x, y);
+    if (this.#lucky(kills)) this.drop(x, y);
+  }
+
+  drop(x, y) {
+    this.dropped++;
+    this.sinceDrop = 0;
+    const type = POWERUPS.types[Math.floor(this.rng() * POWERUPS.types.length)];
+    this.pool.spawn((powerup) => Object.assign(powerup, { x, y, type, radius: POWERUPS.radius, age: 0 }));
   }
 
   #lucky(kills) {
     if (this.dropped === 0 && kills >= POWERUPS.guaranteedAtKill) return true;
     return this.sinceDrop >= POWERUPS.dropCooldown && this.rng() < POWERUPS.dropChance;
-  }
-
-  #drop(x, y) {
-    this.dropped++;
-    this.sinceDrop = 0;
-    const type = POWERUPS.types[Math.floor(this.rng() * POWERUPS.types.length)];
-    this.pool.spawn((powerup) => Object.assign(powerup, { x, y, type, radius: POWERUPS.radius, age: 0 }));
   }
 
   update(dt) {

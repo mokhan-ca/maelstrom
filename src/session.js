@@ -1,4 +1,4 @@
-import { SHIP, WAVES, COMBO, ENEMIES, VORTEX } from './config.js';
+import { SHIP, WAVES, COMBO, ENEMIES, VORTEX, BOSSES } from './config.js';
 
 export default class Session {
   constructor({ best = 0 } = {}) {
@@ -6,10 +6,10 @@ export default class Session {
     this.reset();
   }
 
-  reset() {
+  reset(wave = 1) {
     this.score = 0;
     this.lives = SHIP.lives;
-    this.wave = 1;
+    this.wave = wave;
     this.waveTime = 0;
     this.waveKills = 0;
     this.streak = 0;
@@ -35,6 +35,7 @@ export default class Session {
   }
 
   escape() {
+    if (this.boss) return false;
     const broken = this.multiplier > 1;
     this.streak = 0;
     return broken;
@@ -52,15 +53,28 @@ export default class Session {
     return this.wave === 1 ? WAVES.firstWaveKills : WAVES.killsToAdvance;
   }
 
+  get boss() {
+    if (this.wave % BOSSES.every !== 0) return null;
+    const { roster } = BOSSES;
+    const index = this.wave / BOSSES.every - 1;
+    return { type: roster[index % roster.length], tier: Math.floor(index / roster.length) };
+  }
+
   tick(dt) {
+    if (this.boss) return false;
     this.waveTime += dt;
-    if (this.waveTime >= WAVES.duration || this.waveKills >= this.killsToAdvance) {
-      this.wave++;
-      this.waveTime = 0;
-      this.waveKills = 0;
-      return true;
-    }
-    return false;
+    if (this.waveTime < WAVES.duration && this.waveKills < this.killsToAdvance) return false;
+    return this.#advance();
+  }
+
+  defeatBoss() {
+    const { type, tier } = this.boss;
+    const awarded = BOSSES[type].points * (tier + 1);
+    this.score += awarded;
+    this.best = Math.max(this.best, this.score);
+    const extraLife = this.#earnExtraLife();
+    this.#advance();
+    return { awarded, extraLife, comboUp: false };
   }
 
   get spawnInterval() {
@@ -82,6 +96,13 @@ export default class Session {
       if (roll < 0) return type;
     }
     return options[options.length - 1][0];
+  }
+
+  #advance() {
+    this.wave++;
+    this.waveTime = 0;
+    this.waveKills = 0;
+    return true;
   }
 
   #earnExtraLife() {

@@ -70,3 +70,23 @@ export const VORTEX = {
   path: { x: 165, y: 210, centerY: 350, speedX: 0.13, speedY: 0.21 },
   weights: { ship: 0.35, enemy: 1, bullet: 0.8 },
 };
+
+export const BOSSES = {
+  every: 5,
+  roster: ['octopus'],
+  entrance: 2,
+  fodderInterval: 3,
+  tier: { hp: 0.25, maxHp: 1.75, pace: 0.15, maxPace: 1.45 },
+  octopus: {
+    hp: 150,
+    points: 15000,
+    gap: 2.2,
+    telegraph: 0.7,
+    sweep: 1.1,
+    recover: 0.5,
+    head: { y: 200, radius: 36, roam: 120, bob: 10 },
+    arm: { segments: 7, rest: 150, coil: 110, reach: 380 },
+    ring: { drops: 14, speed: 150 },
+    flick: { drops: 3, speed: 210, spread: 0.22 },
+  },
+};

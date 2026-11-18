@@ -1,5 +1,5 @@
 import Session from '../src/session.js';
-import { SHIP, WAVES, COMBO, ENEMIES } from '../src/config.js';
+import { SHIP, WAVES, COMBO, ENEMIES, BOSSES } from '../src/config.js';
 
 describe('Session', () => {
   let session;
@@ -129,6 +129,49 @@ describe('Session', () => {
     it('introduces new enemies in later waves', () => {
       session.wave = WAVES.shooterFromWave;
       expect(session.pickEnemyType(() => 0.999)).toBe('shooter');
+    });
+  });
+
+  describe('bosses', () => {
+    const { every, roster } = BOSSES;
+    const returning = every * (roster.length + 1);
+
+    it('appears every few waves', () => {
+      session.wave = every - 1;
+      expect(session.boss).toBeNull();
+      session.wave = every;
+      expect(session.boss).toEqual({ type: roster[0], tier: 0 });
+    });
+
+    it('returns harder once the roster is through', () => {
+      session.wave = returning;
+      expect(session.boss).toEqual({ type: roster[0], tier: 1 });
+    });
+
+    it('holds the wave until the boss falls', () => {
+      session.wave = every;
+      session.waveKills = 999;
+      expect(session.tick(WAVES.duration * 2)).toBe(false);
+      expect(session.wave).toBe(every);
+    });
+
+    it('pays a flat reward that grows with the tier', () => {
+      session.wave = returning;
+      session.streak = 50;
+      session.waveKills = 7;
+      const { awarded } = session.defeatBoss();
+      expect(awarded).toBe(BOSSES[roster[0]].points * 2);
+      expect(session.score).toBe(awarded);
+      expect(session.streak).toBe(50);
+      expect(session.waveKills).toBe(0);
+      expect(session.wave).toBe(returning + 1);
+    });
+
+    it('lets fodder slip past without breaking the combo', () => {
+      session.wave = every;
+      session.streak = COMBO.killsPerStep;
+      expect(session.escape()).toBe(false);
+      expect(session.multiplier).toBe(2);
     });
   });
 });

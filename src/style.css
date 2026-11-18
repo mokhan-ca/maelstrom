@@ -166,6 +166,52 @@ button.primary:focus-visible { outline: 3px solid var(--ink); }
   pointer-events: none;
 }
 
+.boss {
+  position: fixed;
+  top: calc(var(--safe-top) + 50px);
+  left: 50%;
+  transform: translateX(-50%);
+  display: grid;
+  justify-items: center;
+  gap: 3px;
+  pointer-events: none;
+}
+
+.boss[hidden] { display: none; }
+.boss-name { font-size: 14px; font-style: italic; letter-spacing: 0.06em; }
+
+.boss-bar {
+  position: relative;
+  width: min(60vw, 280px);
+  height: 8px;
+  border: 1.5px solid var(--ink);
+  border-radius: 4px 2px 5px 2px;
+  overflow: hidden;
+}
+
+.boss-bar::before, .boss-bar::after {
+  content: "";
+  position: absolute;
+  top: 0;
+  bottom: 0;
+  width: 1.5px;
+  background: var(--ink);
+  z-index: 1;
+}
+
+.boss-bar::before { left: 33.33%; }
+.boss-bar::after { left: 66.67%; }
+
+.boss-fill {
+  position: absolute;
+  inset: 0;
+  background: var(--vermilion);
+  transform-origin: left;
+  transition: transform 120ms ease-out;
+}
+
+.boss:not([hidden]) ~ .powers { top: calc(var(--safe-top) + 96px); }
+
 .rotate { display: none; z-index: 10; }
 
 @media (orientation: landscape) and (pointer: coarse) and (max-height: 500px) {
@@ -229,6 +275,7 @@ button.primary:focus-visible { outline: 3px solid var(--ink); }
   .toast, .intro { transition: none; }
   .hint { animation: none; }
   #score.pulse, .new-best { animation: none; }
+  .boss-fill { transition: none; }
 }
 
 @media (max-width: 440px) {

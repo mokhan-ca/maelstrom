@@ -26,7 +26,12 @@
     </div>
   </header>
 
+  <div id="boss" class="boss" hidden>
+    <span id="boss-name" class="boss-name"></span>
+    <span id="boss-bar" class="boss-bar" role="progressbar" aria-labelledby="boss-name" aria-valuemin="0" aria-valuemax="100" aria-valuenow="100"><span id="boss-fill" class="boss-fill"></span></span>
+  </div>
   <div id="powers" class="powers" aria-live="off"></div>
+  <div id="announce" class="sr-only" role="status"></div>
   <div id="toast" class="toast" role="status"></div>
   <div id="intro" class="intro" role="status"></div>
   <div id="hint" class="hint" hidden></div>

@@ -1,4 +1,4 @@
-import { BULLET, WORLD, WAVES, SHIP, VORTEX } from '../config.js';
+import { BULLET, WORLD, WAVES, SHIP, VORTEX, BOSSES } from '../config.js';
 import { eachCollision } from '../engine/collision.js';
 import { sprites } from '../render/sprites.js';
 import Ship from '../entities/ship.js';
@@ -9,15 +9,17 @@ import Particles from '../entities/particles.js';
 import Effects from '../entities/effects.js';
 import Vortex from '../entities/vortex.js';
 import { recentlyStruck } from '../entities/enemies.js';
+import { summon as summonBoss } from '../entities/bosses/index.js';
 
-const HIT_STOP = { kill: 0.03, shooter: 0.07, hurt: 0.12 };
+const HIT_STOP = { kill: 0.03, shooter: 0.07, hurt: 0.12, phase: 0.12, boss: 0.25 };
 const DEATH_SLOWDOWN = 0.35;
 
 const COLORS_BY_ENEMY = { drifter: 'ink', zigzag: 'indigo', shooter: 'moss' };
 
 export default class Play {
-  constructor({ session, events, rng = Math.random, calm = () => false, met = [] }) {
+  constructor({ session, events, rng = Math.random, calm = () => false, met = [], summon = summonBoss }) {
     this.met = new Set(met);
+    this.summon = summon;
     this.calm = calm;
     this.session = session;
     this.events = events;
@@ -30,21 +32,27 @@ export default class Play {
     this.particles = new Particles(rng);
     this.effects = new Effects(rng);
     this.vortex = new Vortex();
+    this.boss = null;
+    this.wreck = null;
     this.freeze = 0;
     this.shake = 0;
     this.flash = 0;
     this.ended = 0;
   }
 
-  start() {
-    this.session.reset();
+  start(wave = 1) {
+    this.session.reset(wave);
     for (const group of [this.enemies, this.lasers, this.bullets, this.particles, this.effects]) group.clear();
     this.powerups.reset();
     this.ship.reset();
     this.vortex.reset();
+    this.vortex.awaken(wave);
+    this.boss = null;
+    this.wreck = null;
     this.spawnIn = 1;
     this.ended = 0;
     this.events.publish('start', this.session);
+    this.#challenge();
   }
 
   get finished() {
@@ -62,8 +70,11 @@ export default class Play {
 
     this.vortex.update(dt);
     this.enemies.update(dt, this.#world);
+    this.boss?.update(dt, this.#world);
+    this.#crumble(dt);
     this.bullets.drift(this.vortex, dt, VORTEX.weights.bullet);
     for (const group of [this.lasers, this.bullets, this.powerups, this.particles, this.effects]) group.update(dt);
+    if (!this.session.over) this.#strikeBoss();
     if (!this.session.over) this.#collide();
     if (!this.session.over) this.#churn();
     this.shake = Math.max(0, this.shake - dt * 30);
@@ -73,6 +84,7 @@ export default class Play {
   draw(ctx) {
     this.effects.drawStains(ctx);
     this.vortex.draw(ctx);
+    for (const boss of [this.wreck, this.boss]) boss?.draw(ctx, this.calm());
     this.particles.draw(ctx);
     this.powerups.draw(ctx);
     this.lasers.draw(ctx);
@@ -120,6 +132,85 @@ export default class Play {
     this.vortex.awaken(wave);
     this.events.publish('wave', wave);
     if (stirring && this.vortex.active) this.events.publish('maelstrom');
+    this.#challenge();
+  }
+
+  #challenge() {
+    const { boss } = this.session;
+    if (!boss) return;
+    this.boss = this.summon(boss.type, boss.tier);
+    this.spawnIn = BOSSES.entrance * 2;
+    this.events.publish('boss', boss);
+  }
+
+  #strikeBoss() {
+    const { boss } = this;
+    if (!boss) return;
+    eachCollision(this.lasers, boss.parts, (laser, part) => {
+      laser.active = false;
+      this.#strike(boss, part, laser);
+      return true;
+    });
+    if (this.boss !== boss) return;
+    if (this.ship.shielded) return this.#brace(boss);
+    if (!this.ship.vulnerable) return;
+    eachCollision([this.ship], boss.parts, () => {
+      this.#hurt();
+      return true;
+    });
+  }
+
+  #strike(boss, part, laser) {
+    const wound = part.weak && boss.damage();
+    if (!wound) return this.particles.burst(laser.x, laser.y, 'wash', 3, 90, 0.2);
+    this.particles.burst(laser.x, laser.y, 'vermilion', 5, 140, 0.3);
+    if (wound.dead) return this.#slay(boss, part);
+    if (wound.phaseChanged) this.#shudder(boss, part);
+  }
+
+  #shudder(boss, { x, y }) {
+    this.freeze = Math.max(this.freeze, HIT_STOP.phase);
+    this.effects.ring(x, y, 'vermilion', 90);
+    this.effects.stain(x, y, 1.4);
+    this.powerups.drop(this.ship.x, y + 80);
+    if (!this.calm()) boss.startle();
+  }
+
+  #brace(boss) {
+    const shield = { active: true, x: this.ship.x, y: this.ship.y, radius: 28 };
+    eachCollision([shield], boss.parts, (_, part) => {
+      const dx = shield.x - part.x;
+      const dy = shield.y - part.y;
+      const distance = Math.hypot(dx, dy) || 1;
+      const push = (shield.radius + part.radius - distance) / distance;
+      this.ship.nudge({ x: dx * push, y: dy * push });
+    });
+  }
+
+  #slay(boss, { x, y }) {
+    const result = this.session.defeatBoss();
+    for (const part of boss.parts) part.active = false;
+    this.boss = null;
+    this.wreck = boss;
+    this.freeze = HIT_STOP.boss;
+    this.shake = 20;
+    this.powerups.drop(x, y + 60);
+    this.effects.label(x, y + 70, `+${result.awarded.toLocaleString()}`, 'vermilion', 34);
+    this.events.publish('boss-down', boss);
+    this.#celebrate(result);
+    this.#nextWave();
+  }
+
+  #crumble(dt) {
+    if (!this.wreck) return;
+    for (const part of this.wreck.crumble(dt)) this.#splatter(part, this.wreck.parts.length);
+    if (!this.wreck.parts.length) this.wreck = null;
+  }
+
+  #splatter(part, remaining) {
+    this.particles.burst(part.x, part.y, 'ink', 10, 200, 0.6);
+    if (remaining % 3 === 0) this.effects.stain(part.x, part.y, part.radius / 18);
+    if (part.weak) this.effects.ring(part.x, part.y, 'ink', 120);
   }
 
   #churn() {
@@ -162,8 +253,8 @@ export default class Play {
   #spawn(dt) {
     this.spawnIn -= dt;
     if (this.spawnIn > 0 || this.enemies.count >= WAVES.maxEnemies) return;
-    this.spawnIn = this.session.spawnInterval * (0.7 + this.rng() * 0.6);
-    const type = this.session.pickEnemyType(this.rng);
+    this.spawnIn = this.session.spawnInterval * (0.7 + this.rng() * 0.6) * (this.boss ? BOSSES.fodderInterval : 1);
+    const type = this.boss ? 'drifter' : this.session.pickEnemyType(this.rng);
     this.enemies.spawn(type, this.session.speedMultiplier);
     this.#meet(type);
   }
@@ -239,6 +330,7 @@ export default class Play {
 
   #hurt() {
     const over = this.session.hitPlayer();
+    this.boss?.regroup();
     const { x, y } = this.ship;
     this.particles.burst(x, y, 'vermilion', 40, 320, 1);
     this.particles.burst(x, y, 'ink', 30, 240, 1);

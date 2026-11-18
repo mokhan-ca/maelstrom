@@ -57,6 +57,25 @@ export default class Sfx {
     this.#play((voices, time) => voices.tone({ type: 'triangle', from: 260, to: 180, time, length: 0.12, volume: 0.3 }));
   }
 
+  bossArrives() {
+    this.#gong(55, 0.5, 2.5);
+    this.#play((voices, time) => {
+      let at = time + 0.3;
+      for (let beat = 0; beat < 8; beat++) {
+        voices.tone({ from: 110, to: 45, time: at, length: 0.25, volume: 0.25 + beat * 0.06 });
+        at += 0.2 - beat * 0.018;
+      }
+    });
+  }
+
+  bossDown() {
+    this.#gong(65, 0.6, 3.5);
+    this.#play((voices, time) => {
+      voices.tone({ from: 120, to: 35, time, length: 0.6, volume: 0.8 });
+      voices.noise({ from: 3000, to: 200, time, length: 0.4, volume: 0.5 });
+    });
+  }
+
   gameOver() {
     this.#gong(73, 0.5, 3);
     this.#strum([4, 3, 1, 0], -1, 0.35);

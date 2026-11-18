@@ -23,6 +23,12 @@ const BESTIARY = {
   drifter: ['Ink spider', 'drifts down. Let it pass and your combo breaks.'],
   zigzag: ['Koi', 'weaves side to side.'],
   shooter: ['Lantern ghost', 'stops, stares, then spits ink at you.'],
+  octopus: ['Ink octopus', 'guards its eye with sweeping arms. Strike the eye.'],
+};
+
+const startingWave = () => {
+  if (!import.meta.env.DEV) return 1;
+  return Number(new URLSearchParams(location.search).get('wave')) || 1;
 };
 
 const canvas = $('screen');
@@ -59,10 +65,10 @@ const remember = () => save('best', session.best);
 const start = () => {
   mixer.unlock();
   previousBest = session.best;
-  play.start();
+  play.start(startingWave());
   music.start();
   show('playing');
-  hud.toast('Wave 1');
+  hud.toast(`Wave ${session.wave}`);
   hint();
   if (brushMode) unleash();
 };
@@ -176,6 +182,19 @@ events.subscribe('meet', (type) => {
   save('met', [...play.met]);
   hud.introduce(...BESTIARY[type]);
 });
+events.subscribe('boss', ({ type, tier }) => {
+  const [name, description] = BESTIARY[type];
+  hud.introduce(tier ? `Returning: ${name}` : name, description, 4);
+  hud.nameBoss(name);
+  hud.announce(`${name} arrives`);
+  sfx.bossArrives();
+});
+events.subscribe('boss-down', ({ type }) => {
+  const [name] = BESTIARY[type];
+  hud.toast(`${name} defeated`, 2);
+  hud.announce(`${name} defeated`);
+  sfx.bossDown();
+});
 events.subscribe('expire', (power) => {
   sfx.expire();
   hud.toast(`${power} faded`, 0.8);
@@ -218,7 +237,7 @@ const commands = {
   playing: (dt) => {
     if (input.consume('pause')) return pause();
     play.update(dt, input);
-    hud.render(session, play.ship);
+    hud.render(session, play.ship, play.boss);
     if (play.finished) finish();
   },
 };
@@ -253,5 +272,5 @@ const frame = (ctx) => {
   ctx.strokeRect(0, 0, WORLD.width, WORLD.height);
 };
 
-hud.render(session, play.ship);
+hud.render(session, play.ship, play.boss);
 new Loop({ update, render }).start();

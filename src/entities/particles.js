@@ -2,6 +2,8 @@ import Pool from '../engine/pool.js';
 import { PARTICLES } from '../config.js';
 import { sprites } from '../render/sprites.js';
 
+const GRAVITY = 260;
+
 export default class Particles {
   constructor(rng = Math.random) {
     this.rng = rng;
@@ -40,18 +42,18 @@ export default class Particles {
       p.x += p.vx * dt;
       p.y += p.vy * dt;
       p.vx *= drag;
-      p.vy *= drag;
+      p.vy = p.vy * drag + GRAVITY * dt;
     }
   }
 
   draw(ctx) {
     const dots = sprites().dots;
     for (const p of this.pool) {
-      const sprite = dots[p.color] || dots.white;
+      const sprite = dots[p.color] || dots.ink;
       const remaining = Math.max(0, p.life / p.maxLife);
       const size = sprite.width * p.size * (0.4 + 0.6 * remaining);
       ctx.globalAlpha = remaining;
-      ctx.drawImage(sprite.canvas, p.x - size / 2, p.y - size / 2, size, size);
+      ctx.drawImage(sprite.variants[0], p.x - size / 2, p.y - size / 2, size, size);
     }
     ctx.globalAlpha = 1;
   }

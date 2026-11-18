@@ -21,6 +21,7 @@ export default class Ship {
     this.vx = 0;
     this.vy = 0;
     this.age = 0;
+    this.brushUntil = 0;
   }
 
   update(dt, input) {
@@ -34,6 +35,11 @@ export default class Ship {
   boost(seconds) {
     this.powers.spread = seconds;
     this.powers.rapid = seconds;
+    this.brushUntil = this.age + seconds;
+  }
+
+  get brushed() {
+    return this.age < this.brushUntil;
   }
 
   get canFire() {

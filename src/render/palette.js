@@ -1,10 +1,9 @@
 export const COLORS = {
-  cyan: '#3df5ff',
-  magenta: '#ff3df2',
-  yellow: '#ffd23d',
-  green: '#5dff7a',
-  pink: '#ff4d6d',
-  violet: '#8a5cff',
-  white: '#ffffff',
-  orange: '#ff8a3d',
+  paper: '#efe6d2',
+  ink: '#1b1a17',
+  wash: '#5b6470',
+  vermilion: '#c23b22',
+  ochre: '#b8862b',
+  moss: '#5f6b3a',
+  indigo: '#2f4a6d',
 };

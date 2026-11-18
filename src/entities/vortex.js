@@ -26,7 +26,7 @@ export default class Vortex {
 
   update(dt) {
     this.age += dt;
-    this.presence = Math.min(1, this.presence + (this.active ? dt / 1.5 : -dt));
+    this.presence = Math.min(1, Math.max(0, this.presence + (this.active ? dt / 1.5 : -dt)));
     this.#follow();
   }
 
@@ -47,20 +47,25 @@ export default class Vortex {
     if (this.presence === 0) return;
     ctx.save();
     ctx.translate(this.x, this.y);
-    ctx.rotate(this.age * 2.4);
-    ctx.globalAlpha = 0.55 * this.presence;
-    ctx.strokeStyle = COLORS.violet;
+    ctx.rotate(-this.age * 2.4);
+    ctx.globalAlpha = 0.5 * this.presence;
+    ctx.strokeStyle = COLORS.wash;
     ctx.lineCap = 'round';
     for (let arm = 0; arm < 4; arm++) {
       ctx.rotate(Math.PI / 2);
-      ctx.lineWidth = 5 - arm;
+      ctx.lineWidth = 6 - arm * 1.2;
       ctx.beginPath();
       for (let t = 0; t <= 1; t += 0.05) {
         const radius = VORTEX.core + (VORTEX.reach * 0.8 - VORTEX.core) * t;
-        ctx.lineTo(Math.cos(t * 3.5) * radius, Math.sin(t * 3.5) * radius);
+        ctx.lineTo(Math.cos(-t * 3.5) * radius, Math.sin(-t * 3.5) * radius);
       }
       ctx.stroke();
     }
+    ctx.globalAlpha = this.presence;
+    ctx.fillStyle = COLORS.ink;
+    ctx.beginPath();
+    ctx.arc(0, 0, VORTEX.core * 0.7, 0, Math.PI * 2);
+    ctx.fill();
     ctx.restore();
   }
 

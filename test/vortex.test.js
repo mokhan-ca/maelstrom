@@ -59,4 +59,9 @@ describe('Vortex', () => {
     expect(vortex.swallows({ x: 105, y: 100 })).toBe(true);
     expect(vortex.swallows({ x: 140, y: 100 })).toBe(false);
   });
+
+  it('stays hidden while asleep', () => {
+    vortex.update(5);
+    expect(vortex.presence).toBe(0);
+  });
 });

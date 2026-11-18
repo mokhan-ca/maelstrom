@@ -1,12 +1,12 @@
 {
   "name": "Maelstrom",
   "short_name": "Maelstrom",
-  "description": "A neon arcade shooter.",
+  "description": "An ink-brush arcade shooter.",
   "start_url": "/",
   "display": "standalone",
   "orientation": "portrait",
-  "background_color": "#05010f",
-  "theme_color": "#05010f",
+  "background_color": "#efe6d2",
+  "theme_color": "#efe6d2",
   "icons": [
     { "src": "/icon.svg", "sizes": "any", "type": "image/svg+xml" },
     { "src": "/icon-192.png", "sizes": "192x192", "type": "image/png" },

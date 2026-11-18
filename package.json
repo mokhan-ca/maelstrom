@@ -2,7 +2,7 @@
   "name": "maelstrom",
   "version": "2.0.0",
   "private": true,
-  "description": "A neon arcade shooter for the browser.",
+  "description": "An ink-brush arcade shooter for the browser.",
   "type": "module",
   "scripts": {
     "dev": "vite --host",

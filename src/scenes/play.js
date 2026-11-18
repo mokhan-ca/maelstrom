@@ -13,7 +13,7 @@ import { recentlyStruck } from '../entities/enemies.js';
 const HIT_STOP = { kill: 0.03, shooter: 0.07, hurt: 0.12 };
 const DEATH_SLOWDOWN = 0.35;
 
-const COLORS_BY_ENEMY = { drifter: 'magenta', zigzag: 'yellow', shooter: 'green' };
+const COLORS_BY_ENEMY = { drifter: 'ink', zigzag: 'indigo', shooter: 'moss' };
 
 export default class Play {
   constructor({ session, events, rng = Math.random, calm = () => false }) {
@@ -23,11 +23,11 @@ export default class Play {
     this.rng = rng;
     this.ship = new Ship();
     this.enemies = new Enemies(rng);
-    this.lasers = new Projectiles(() => sprites().laser, 4, 60);
+    this.lasers = new Projectiles(() => (this.ship.brushed ? sprites().brushLaser : sprites().laser), 4, 60);
     this.bullets = new Projectiles(() => sprites().bullet, BULLET.radius, 120);
     this.powerups = new Powerups(rng);
     this.particles = new Particles(rng);
-    this.effects = new Effects();
+    this.effects = new Effects(rng);
     this.vortex = new Vortex();
     this.freeze = 0;
     this.shake = 0;
@@ -70,8 +70,8 @@ export default class Play {
   }
 
   draw(ctx) {
+    this.effects.drawStains(ctx);
     this.vortex.draw(ctx);
-    ctx.globalCompositeOperation = 'lighter';
     this.particles.draw(ctx);
     this.powerups.draw(ctx);
     this.lasers.draw(ctx);
@@ -79,11 +79,12 @@ export default class Play {
     if (this.ship.active) this.ship.draw(ctx);
     this.bullets.draw(ctx);
     this.effects.draw(ctx);
-    ctx.globalCompositeOperation = 'source-over';
 
     if (this.flash && !this.calm()) {
-      ctx.fillStyle = `rgba(255, 60, 90, ${this.flash * 0.35})`;
+      ctx.globalCompositeOperation = 'multiply';
+      ctx.fillStyle = `rgba(194, 59, 34, ${this.flash * 0.35})`;
       ctx.fillRect(0, 0, WORLD.width, WORLD.height);
+      ctx.globalCompositeOperation = 'source-over';
     }
   }
 
@@ -132,11 +133,11 @@ export default class Play {
 
   #swallow(enemy) {
     enemy.active = false;
-    this.effects.ring(enemy.x, enemy.y, 'violet', 30);
+    this.effects.ring(enemy.x, enemy.y, 'wash', 30);
     this.events.publish('swallow', enemy);
     if (!recentlyStruck(enemy)) return;
     const result = this.session.registerKill(enemy.type, { swallowed: true });
-    this.effects.label(enemy.x, enemy.y, `+${result.awarded}`, 'yellow');
+    this.effects.label(enemy.x, enemy.y, `+${result.awarded}`, 'vermilion');
     this.#celebrate(result);
   }
 
@@ -153,7 +154,7 @@ export default class Play {
 
   #fire() {
     this.ship.fire(this.lasers);
-    this.particles.emit(this.ship.x, this.ship.y - 24, 0, -40, 'white', 0.06, 2.4);
+    this.particles.emit(this.ship.x, this.ship.y - 24, 0, -40, 'ink', 0.06, 1.6);
     this.events.publish('laser');
   }
 
@@ -167,14 +168,14 @@ export default class Play {
   #trail() {
     const { x, y } = this.ship;
     for (const side of [-11, 11]) {
-      this.particles.emit(x + side, y + 18, (this.rng() - 0.5) * 30, 160 + this.rng() * 80, this.rng() < 0.5 ? 'magenta' : 'violet', 0.25, 0.7);
+      this.particles.emit(x + side, y + 18, (this.rng() - 0.5) * 30, 120 + this.rng() * 60, 'wash', 0.3, 0.6);
     }
   }
 
   #collide() {
     eachCollision(this.lasers, this.enemies, (laser, enemy) => {
       laser.active = false;
-      this.particles.burst(laser.x, laser.y, 'cyan', 4, 120, 0.25);
+      this.particles.burst(laser.x, laser.y, 'ink', 4, 120, 0.25);
       if (this.enemies.damage(enemy)) this.#destroy(enemy);
       return true;
     });
@@ -183,7 +184,7 @@ export default class Play {
     eachCollision([reach], this.powerups, (_, powerup) => {
       powerup.active = false;
       this.ship.powerUp(powerup.type);
-      this.particles.burst(powerup.x, powerup.y, 'white', 16, 160, 0.4);
+      this.particles.burst(powerup.x, powerup.y, 'ochre', 16, 160, 0.4);
       this.events.publish('powerup', powerup.type);
     });
 
@@ -201,7 +202,7 @@ export default class Play {
     const shield = { active: true, x: this.ship.x, y: this.ship.y, radius: 28 };
     eachCollision([shield], this.bullets, (_, bullet) => {
       bullet.active = false;
-      this.particles.burst(bullet.x, bullet.y, 'green', 6, 120, 0.3);
+      this.particles.burst(bullet.x, bullet.y, 'moss', 6, 120, 0.3);
     });
     eachCollision([shield], this.enemies, (_, enemy) => {
       enemy.active = false;
@@ -212,9 +213,9 @@ export default class Play {
   #destroy(enemy) {
     const result = this.session.registerKill(enemy.type);
     this.particles.burst(enemy.x, enemy.y, COLORS_BY_ENEMY[enemy.type], 28, 260, 0.8);
-    this.particles.burst(enemy.x, enemy.y, 'white', 8, 140, 0.4);
+    this.effects.stain(enemy.x, enemy.y, enemy.radius / 18);
     this.effects.ring(enemy.x, enemy.y, COLORS_BY_ENEMY[enemy.type], enemy.radius * 2.4);
-    this.effects.label(enemy.x, enemy.y, `+${result.awarded}`, result.awarded > 300 ? 'yellow' : 'white');
+    this.effects.label(enemy.x, enemy.y, `+${result.awarded}`, result.awarded > 300 ? 'vermilion' : 'ink');
     this.freeze = Math.max(this.freeze, enemy.type === 'shooter' ? HIT_STOP.shooter : HIT_STOP.kill);
     this.powerups.maybeDrop(enemy.x, enemy.y, this.session.kills);
     this.shake = Math.max(this.shake, enemy.type === 'shooter' ? 10 : 5);
@@ -230,17 +231,18 @@ export default class Play {
   #hurt() {
     const over = this.session.hitPlayer();
     const { x, y } = this.ship;
-    this.particles.burst(x, y, 'cyan', 40, 320, 1);
-    this.particles.burst(x, y, 'pink', 30, 240, 1);
+    this.particles.burst(x, y, 'vermilion', 40, 320, 1);
+    this.particles.burst(x, y, 'ink', 30, 240, 1);
     this.bullets.clear();
-    this.effects.ring(x, y, 'pink', 90);
+    this.effects.stain(x, y, 1.6);
+    this.effects.ring(x, y, 'vermilion', 90);
     this.shake = 18;
     this.flash = 1;
     this.freeze = HIT_STOP.hurt;
 
     if (over) {
       this.ship.active = false;
-      this.particles.burst(x, y, 'white', 60, 420, 1.4);
+      this.particles.burst(x, y, 'vermilion', 60, 420, 1.4);
       this.events.publish('game-over', this.session);
     } else {
       this.ship.hit();

@@ -7,7 +7,7 @@ import Loop from './engine/loop.js';
 import Viewport from './engine/viewport.js';
 import Session from './session.js';
 import Play from './scenes/play.js';
-import Starfield from './render/starfield.js';
+import Paper from './render/paper.js';
 import { sprites } from './render/sprites.js';
 import Mixer from './audio/mixer.js';
 import Sfx from './audio/sfx.js';
@@ -18,7 +18,7 @@ import Konami from './konami.js';
 const $ = (id) => document.getElementById(id);
 const calm = matchMedia('(prefers-reduced-motion: reduce)');
 const sideways = matchMedia('(orientation: landscape) and (pointer: coarse) and (max-height: 500px)');
-const MAELSTROM_MODE = 30;
+const BRUSH_MODE = 30;
 
 const canvas = $('screen');
 const viewport = new Viewport(canvas);
@@ -26,7 +26,7 @@ const input = new Input({ pointerTarget: canvas, worldScale: () => viewport.scal
 const events = new EventAggregator();
 const session = new Session({ best: load('best', 0) });
 const play = new Play({ session, events, calm: () => calm.matches });
-const starfield = new Starfield();
+const paper = new Paper();
 const mixer = new Mixer({ muted: load('muted', false) });
 const sfx = new Sfx(mixer);
 const music = new Music(mixer);
@@ -35,7 +35,7 @@ const hud = new Hud();
 const overlays = { title: $('title'), paused: $('paused'), over: $('over') };
 let scene = 'title';
 let previousBest = session.best;
-let maelstromMode = false;
+let brushMode = false;
 
 const show = (name) => {
   scene = name;
@@ -59,21 +59,19 @@ const start = () => {
   show('playing');
   hud.toast('Wave 1');
   hint();
-  if (maelstromMode) unleash();
+  if (brushMode) unleash();
 };
 
 const unleash = () => {
-  play.ship.boost(MAELSTROM_MODE);
-  canvas.classList.add('rainbow');
-  setTimeout(() => canvas.classList.remove('rainbow'), MAELSTROM_MODE * 1000);
-  hud.toast('Maelstrom mode', 2);
+  play.ship.boost(BRUSH_MODE);
+  hud.toast('Brush mode', 2);
 };
 
 const konami = new Konami(() => {
-  maelstromMode = true;
+  brushMode = true;
   mixer.unlock();
   sfx.extraLife();
-  $('title-best').textContent = 'Maelstrom mode unlocked';
+  $('title-best').textContent = 'Brush mode unlocked';
 });
 
 const pause = () => {
@@ -192,15 +190,15 @@ events.subscribe('combo-broken', () => {
 events.subscribe('wave', (wave) => {
   hud.toast(`Wave ${wave}`);
   music.intensify(wave);
-  starfield.speed = 1 + (wave - 1) * 0.15;
+  paper.speed = 1 + (wave - 1) * 0.15;
 });
-events.subscribe('start', () => (starfield.speed = 1));
+events.subscribe('start', () => (paper.speed = 1));
 events.subscribe('game-over', () => {
   sfx.gameOver();
   music.fadeOut();
 });
 
-viewport.onResize = ({ width, height }) => starfield.resize(width, height);
+viewport.onResize = ({ width, height }) => paper.resize(width, height);
 viewport.resize();
 sprites();
 
@@ -218,14 +216,14 @@ const commands = {
 
 const update = (dt) => {
   if (input.consume('mute')) toggleMute();
-  starfield.update(dt);
+  paper.update(dt);
   commands[scene](dt);
 };
 
 const render = () => {
   const { ctx } = viewport;
   viewport.screenSpace();
-  starfield.draw(ctx);
+  paper.draw(ctx);
   const shake = calm.matches || scene !== 'playing' ? { x: 0, y: 0 } : play.shakeOffset;
   viewport.worldSpace(shake.x, shake.y);
   frame(ctx);
@@ -238,11 +236,11 @@ const render = () => {
 };
 
 const frame = (ctx) => {
-  ctx.fillStyle = 'rgba(5, 1, 15, 0.45)';
-  ctx.fillRect(0, 0, WORLD.width, WORLD.height);
   if (!viewport.letterboxed) return;
-  ctx.strokeStyle = 'rgba(138, 92, 255, 0.35)';
-  ctx.lineWidth = 2;
+  ctx.fillStyle = 'rgba(255, 250, 238, 0.35)';
+  ctx.fillRect(0, 0, WORLD.width, WORLD.height);
+  ctx.strokeStyle = 'rgba(27, 26, 23, 0.35)';
+  ctx.lineWidth = 1.5;
   ctx.strokeRect(0, 0, WORLD.width, WORLD.height);
 };
 

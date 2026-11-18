@@ -6,11 +6,16 @@ import Enemies from '../entities/enemies.js';
 import Projectiles from '../entities/projectiles.js';
 import Powerups from '../entities/powerups.js';
 import Particles from '../entities/particles.js';
+import Effects from '../entities/effects.js';
+
+const HIT_STOP = { kill: 0.03, shooter: 0.07, hurt: 0.12 };
+const DEATH_SLOWDOWN = 0.35;
 
 const COLORS_BY_ENEMY = { drifter: 'magenta', zigzag: 'yellow', shooter: 'green' };
 
 export default class Play {
-  constructor({ session, events, rng = Math.random }) {
+  constructor({ session, events, rng = Math.random, calm = () => false }) {
+    this.calm = calm;
     this.session = session;
     this.events = events;
     this.rng = rng;
@@ -20,6 +25,8 @@ export default class Play {
     this.bullets = new Projectiles(() => sprites().bullet, BULLET.radius, 120);
     this.powerups = new Powerups(rng);
     this.particles = new Particles(rng);
+    this.effects = new Effects();
+    this.freeze = 0;
     this.shake = 0;
     this.flash = 0;
     this.ended = 0;
@@ -27,7 +34,7 @@ export default class Play {
 
   start() {
     this.session.reset();
-    for (const group of [this.enemies, this.lasers, this.bullets, this.particles]) group.clear();
+    for (const group of [this.enemies, this.lasers, this.bullets, this.particles, this.effects]) group.clear();
     this.powerups.reset();
     this.ship.reset();
     this.spawnIn = 1;
@@ -40,11 +47,16 @@ export default class Play {
   }
 
   update(dt, input) {
-    if (this.session.over) this.ended += dt;
-    else this.#play(dt, input);
+    if (this.#frozen(dt)) return;
+    if (this.session.over) {
+      this.ended += dt;
+      dt *= DEATH_SLOWDOWN;
+    } else {
+      this.#play(dt, input);
+    }
 
-    this.enemies.update(dt, { ship: this.ship, bullets: this.bullets, speed: this.session.speedMultiplier, escaped: () => this.#escaped() });
-    for (const group of [this.lasers, this.bullets, this.powerups, this.particles]) group.update(dt);
+    this.enemies.update(dt, { ship: this.ship, bullets: this.bullets, speed: this.session.speedMultiplier, escaped: () => this.#escaped(), charging: () => this.events.publish('charge') });
+    for (const group of [this.lasers, this.bullets, this.powerups, this.particles, this.effects]) group.update(dt);
     if (!this.session.over) this.#collide();
     this.shake = Math.max(0, this.shake - dt * 30);
     this.flash = Math.max(0, this.flash - dt * 2.5);
@@ -58,9 +70,10 @@ export default class Play {
     this.enemies.draw(ctx);
     if (this.ship.active) this.ship.draw(ctx);
     this.bullets.draw(ctx);
+    this.effects.draw(ctx);
     ctx.globalCompositeOperation = 'source-over';
 
-    if (this.flash) {
+    if (this.flash && !this.calm()) {
       ctx.fillStyle = `rgba(255, 60, 90, ${this.flash * 0.35})`;
       ctx.fillRect(0, 0, WORLD.width, WORLD.height);
     }
@@ -74,12 +87,21 @@ export default class Play {
   #play(dt, input) {
     if (this.session.tick(dt)) this.events.publish('wave', this.session.wave);
     this.ship.update(dt, input);
-    if (input.firing && this.ship.canFire) {
-      this.ship.fire(this.lasers);
-      this.events.publish('laser');
-    }
+    if (input.firing && this.ship.canFire) this.#fire();
     this.#trail();
     this.#spawn(dt);
+  }
+
+  #frozen(dt) {
+    if (this.freeze <= 0) return false;
+    this.freeze -= dt;
+    return true;
+  }
+
+  #fire() {
+    this.ship.fire(this.lasers);
+    this.particles.emit(this.ship.x, this.ship.y - 24, 0, -40, 'white', 0.06, 2.4);
+    this.events.publish('laser');
   }
 
   #spawn(dt) {
@@ -138,6 +160,9 @@ export default class Play {
     const result = this.session.registerKill(enemy.type);
     this.particles.burst(enemy.x, enemy.y, COLORS_BY_ENEMY[enemy.type], 28, 260, 0.8);
     this.particles.burst(enemy.x, enemy.y, 'white', 8, 140, 0.4);
+    this.effects.ring(enemy.x, enemy.y, COLORS_BY_ENEMY[enemy.type], enemy.radius * 2.4);
+    this.effects.label(enemy.x, enemy.y, `+${result.awarded}`, result.awarded > 300 ? 'yellow' : 'white');
+    this.freeze = Math.max(this.freeze, enemy.type === 'shooter' ? HIT_STOP.shooter : HIT_STOP.kill);
     this.powerups.maybeDrop(enemy.x, enemy.y, this.session.kills);
     this.shake = Math.max(this.shake, enemy.type === 'shooter' ? 10 : 5);
     this.events.publish('kill', { ...result, enemy });
@@ -156,8 +181,10 @@ export default class Play {
     this.particles.burst(x, y, 'cyan', 40, 320, 1);
     this.particles.burst(x, y, 'pink', 30, 240, 1);
     this.bullets.clear();
+    this.effects.ring(x, y, 'pink', 90);
     this.shake = 18;
     this.flash = 1;
+    this.freeze = HIT_STOP.hurt;
 
     if (over) {
       this.ship.active = false;

@@ -174,14 +174,13 @@ export function sprites() {
   return cache;
 }
 
-export function draw(ctx, sprite, x, y, rotation = 0) {
-  if (rotation) {
-    ctx.save();
-    ctx.translate(x, y);
-    ctx.rotate(rotation);
-    ctx.drawImage(sprite.canvas, -sprite.width / 2, -sprite.height / 2, sprite.width, sprite.height);
-    ctx.restore();
-  } else {
-    ctx.drawImage(sprite.canvas, x - sprite.width / 2, y - sprite.height / 2, sprite.width, sprite.height);
-  }
+export function draw(ctx, sprite, x, y, rotation = 0, scale = 1) {
+  const width = sprite.width * scale;
+  const height = sprite.height * scale;
+  if (!rotation) return ctx.drawImage(sprite.canvas, x - width / 2, y - height / 2, width, height);
+  ctx.save();
+  ctx.translate(x, y);
+  ctx.rotate(rotation);
+  ctx.drawImage(sprite.canvas, -width / 2, -height / 2, width, height);
+  ctx.restore();
 }

@@ -2,15 +2,14 @@ const $ = (id) => document.getElementById(id);
 
 export default class Hud {
   constructor() {
-    this.fields = { score: $('score'), wave: $('wave'), best: $('best'), lives: $('lives'), multiplier: $('multiplier') };
+    this.fields = { score: $('score'), wave: $('wave'), lives: $('lives'), multiplier: $('multiplier') };
     this.toastElement = $('toast');
     this.shown = {};
   }
 
   render(session) {
-    this.#set('score', session.score.toLocaleString());
+    if (this.#set('score', session.score.toLocaleString())) this.#pulse(this.fields.score);
     this.#set('wave', session.wave);
-    this.#set('best', session.best.toLocaleString());
     this.#set('lives', '▲'.repeat(session.lives));
     this.#set('multiplier', session.multiplier > 1 ? `×${session.multiplier}` : '');
   }
@@ -23,8 +22,15 @@ export default class Hud {
   }
 
   #set(name, value) {
-    if (this.shown[name] === value) return;
+    if (this.shown[name] === value) return false;
     this.shown[name] = value;
     this.fields[name].textContent = value;
+    return true;
+  }
+
+  #pulse(element) {
+    element.classList.remove('pulse');
+    void element.offsetWidth;
+    element.classList.add('pulse');
   }
 }

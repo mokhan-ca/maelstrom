@@ -17,20 +17,42 @@ const behaviours = {
     enemy.x = enemy.originX + Math.sin(enemy.age * frequency + enemy.phase) * amplitude;
   },
 
-  shooter(enemy, dt, { ship, bullets, speed }) {
-    const { lingerFor, fireInterval, bulletSpeed } = ENEMIES.shooter;
-    const settled = enemy.y >= enemy.station;
-    enemy.y += settled && enemy.age < lingerFor ? 0 : enemy.vy * dt;
-    enemy.x = clamp(enemy.x + Math.sin(enemy.age * 0.9 + enemy.phase) * 70 * dt, enemy.radius, WORLD.width - enemy.radius);
+  shooter(enemy, dt, world) {
+    hover(enemy, dt);
+    if (!settled(enemy) || !world.ship.active) return;
     enemy.reload -= dt;
-    if (!settled || enemy.reload > 0 || !ship.active) return;
-    enemy.reload = fireInterval / speed;
-    const velocity = bulletSpeed * Math.sqrt(speed);
-    const lead = Math.hypot(ship.x - enemy.x, ship.y - enemy.y) / velocity;
-    const angle = Math.atan2(ship.y + ship.vy * lead - enemy.y, ship.x + ship.vx * lead - enemy.x);
-    bullets.fire(enemy.x, enemy.y + 10, Math.cos(angle) * velocity, Math.sin(angle) * velocity);
+    if (enemy.reload <= WIND_UP && !enemy.winding) windUp(enemy, world);
+    if (enemy.reload <= 0) fireAt(enemy, world);
   },
 };
+
+const WIND_UP = 0.25;
+
+const settled = (enemy) => enemy.y >= enemy.station;
+
+const lingering = (enemy) => settled(enemy) && enemy.age < ENEMIES.shooter.lingerFor;
+
+const hover = (enemy, dt) => {
+  if (!lingering(enemy)) enemy.y += enemy.vy * dt;
+  enemy.x = clamp(enemy.x + Math.sin(enemy.age * 0.9 + enemy.phase) * 70 * dt, enemy.radius, WORLD.width - enemy.radius);
+};
+
+const windUp = (enemy, world) => {
+  enemy.winding = true;
+  world.charging();
+};
+
+const fireAt = (enemy, { ship, bullets, speed }) => {
+  const { fireInterval, bulletSpeed } = ENEMIES.shooter;
+  const velocity = bulletSpeed * Math.sqrt(speed);
+  const lead = Math.hypot(ship.x - enemy.x, ship.y - enemy.y) / velocity;
+  const angle = Math.atan2(ship.y + ship.vy * lead - enemy.y, ship.x + ship.vx * lead - enemy.x);
+  bullets.fire(enemy.x, enemy.y + 10, Math.cos(angle) * velocity, Math.sin(angle) * velocity);
+  enemy.reload = fireInterval / speed;
+  enemy.winding = false;
+};
+
+const growth = (enemy) => (enemy.winding ? 1 + 0.4 * (1 - Math.max(0, enemy.reload) / WIND_UP) : 1);
 
 export default class Enemies {
   constructor(rng = Math.random) {
@@ -55,6 +77,7 @@ export default class Enemies {
       phase: this.rng() * Math.PI * 2,
       station: 120 + this.rng() * 220,
       reload: 1 + this.rng(),
+      winding: false,
       flash: 0,
     }));
   }
@@ -83,7 +106,7 @@ export default class Enemies {
   draw(ctx) {
     for (const enemy of this.pool) {
       ctx.globalAlpha = enemy.flash ? 0.4 : 1;
-      draw(ctx, sprites()[enemy.type], enemy.x, enemy.y);
+      draw(ctx, sprites()[enemy.type], enemy.x, enemy.y, 0, growth(enemy));
     }
     ctx.globalAlpha = 1;
   }

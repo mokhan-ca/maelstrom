@@ -53,8 +53,11 @@ canvas {
 .stat.center { justify-content: center; }
 .stat.right { justify-content: flex-end; }
 .label { font-size: 11px; letter-spacing: 0.12em; text-transform: uppercase; opacity: 0.6; }
-#score { color: var(--cyan); font-size: 20px; text-shadow: 0 0 10px var(--cyan); }
-.multiplier { color: var(--yellow); font-size: 13px; }
+#score { display: inline-block; color: var(--cyan); font-size: 20px; text-shadow: 0 0 10px var(--cyan); }
+#score.pulse { animation: pulse 150ms ease-out; }
+.multiplier { color: #fff; font-size: 15px; text-shadow: 0 0 8px #fff; }
+
+@keyframes pulse { 50% { transform: scale(1.2); } }
 .lives { color: var(--magenta); letter-spacing: 2px; text-shadow: 0 0 8px var(--magenta); }
 
 .buttons { display: flex; gap: 6px; pointer-events: auto; }
@@ -71,7 +74,7 @@ button {
 }
 
 button:focus-visible { outline: 2px solid var(--cyan); outline-offset: 2px; }
-button[aria-pressed="true"] { opacity: 0.45; text-decoration: line-through; }
+button[aria-pressed="true"] { opacity: 0.6; }
 
 .overlay {
   position: fixed;
@@ -103,7 +106,9 @@ h2 { font-size: clamp(32px, 9vw, 56px); color: var(--magenta); text-shadow: 0 0 
 .controls, .note { margin: 0; font-size: 14px; opacity: 0.7; }
 .final { font-size: 22px; margin: 0; }
 .final-best { margin: 0; opacity: 0.7; }
-.new-best { margin: 0; color: var(--yellow); text-shadow: 0 0 12px var(--yellow); font-size: 20px; }
+.new-best { margin: 0; color: var(--yellow); text-shadow: 0 0 12px var(--yellow); font-size: 20px; animation: arrive 500ms cubic-bezier(0.3, 1.6, 0.5, 1) 0.9s both; }
+
+@keyframes arrive { from { transform: scale(0); opacity: 0; } }
 
 button.primary {
   font-size: 20px;
@@ -158,6 +163,7 @@ button.primary {
 @media (prefers-reduced-motion: reduce) {
   .toast { transition: none; }
   .hint { animation: none; }
+  #score.pulse, .new-best { animation: none; }
 }
 
 @media (max-width: 440px) {

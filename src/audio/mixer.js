@@ -44,10 +44,18 @@ export default class Mixer {
     const AudioContext = window.AudioContext || window.webkitAudioContext;
     if (!AudioContext) return;
     this.context = new AudioContext();
-    this.master = this.#gain(this.volume, this.context.destination);
+    this.master = this.#gain(this.volume, this.#limiter());
     this.sfx = this.#gain(0.6, this.master);
     this.music = this.#gain(0.35, this.master);
     this.#primeIOS();
+  }
+
+  #limiter() {
+    const compressor = this.context.createDynamicsCompressor();
+    compressor.threshold.value = -12;
+    compressor.ratio.value = 6;
+    compressor.connect(this.context.destination);
+    return compressor;
   }
 
   #gain(value, destination) {

@@ -1,13 +1,17 @@
 export default class Sfx {
-  constructor(mixer) {
+  constructor(mixer, rng = Math.random) {
     this.mixer = mixer;
+    this.rng = rng;
+    this.explosions = [];
   }
 
   laser() {
-    this.#tone({ type: 'square', from: 1400, to: 300, seconds: 0.09, volume: 0.12 });
+    const pitch = 1 + (this.rng() - 0.5) * 0.12;
+    this.#tone({ type: 'square', from: 1400 * pitch, to: 300 * pitch, seconds: 0.09, volume: 0.1 });
   }
 
   explosion() {
+    if (!this.#roomForExplosion()) return;
     this.#noise({ from: 2400, to: 80, seconds: 0.45, volume: 0.5 });
     this.#tone({ type: 'sine', from: 160, to: 40, seconds: 0.3, volume: 0.4 });
   }
@@ -27,6 +31,14 @@ export default class Sfx {
       this.#tone({ type: 'square', from: note, to: note, seconds: 0.1, volume: 0.12, delay: index * 0.08 }));
   }
 
+  charge() {
+    this.#tone({ type: 'sine', from: 200, to: 800, seconds: 0.25, volume: 0.12 });
+  }
+
+  expire() {
+    this.#tone({ type: 'triangle', from: 660, to: 220, seconds: 0.3, volume: 0.18 });
+  }
+
   combo(multiplier) {
     const note = 440 * 2 ** (multiplier / 6);
     this.#tone({ type: 'triangle', from: note, to: note * 1.5, seconds: 0.18, volume: 0.2 });
@@ -39,6 +51,15 @@ export default class Sfx {
   gameOver() {
     [392, 330, 262, 196].forEach((note, index) =>
       this.#tone({ type: 'sawtooth', from: note, to: note * 0.97, seconds: 0.28, volume: 0.2, delay: index * 0.22 }));
+  }
+
+  #roomForExplosion() {
+    if (!this.#live) return false;
+    const now = this.mixer.now;
+    this.explosions = this.explosions.filter((end) => end > now);
+    if (this.explosions.length >= 3) return false;
+    this.explosions.push(now + 0.45);
+    return true;
   }
 
   get #live() {
@@ -75,7 +96,8 @@ export default class Sfx {
 
   #envelope(volume, start, seconds) {
     const gain = this.mixer.context.createGain();
-    gain.gain.setValueAtTime(volume, start);
+    gain.gain.setValueAtTime(0.0001, start);
+    gain.gain.exponentialRampToValueAtTime(volume, start + 0.003);
     gain.gain.exponentialRampToValueAtTime(0.0001, start + seconds);
     return gain;
   }

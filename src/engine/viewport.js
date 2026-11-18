@@ -45,6 +45,10 @@ export default class Viewport {
     this.onResize?.(this);
   }
 
+  get letterboxed() {
+    return this.offsetX > 24;
+  }
+
   screenSpace() {
     this.ctx.setTransform(this.dpr, 0, 0, this.dpr, 0, 0);
   }

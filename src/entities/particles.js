@@ -36,10 +36,11 @@ export default class Particles {
         p.active = false;
         continue;
       }
+      const drag = 0.97 ** (dt * 60);
       p.x += p.vx * dt;
       p.y += p.vy * dt;
-      p.vx *= 0.97;
-      p.vy *= 0.97;
+      p.vx *= drag;
+      p.vy *= drag;
     }
   }
 
@@ -47,8 +48,9 @@ export default class Particles {
     const dots = sprites().dots;
     for (const p of this.pool) {
       const sprite = dots[p.color] || dots.white;
-      const size = sprite.width * p.size;
-      ctx.globalAlpha = Math.max(0, p.life / p.maxLife);
+      const remaining = Math.max(0, p.life / p.maxLife);
+      const size = sprite.width * p.size * (0.4 + 0.6 * remaining);
+      ctx.globalAlpha = remaining;
       ctx.drawImage(sprite.canvas, p.x - size / 2, p.y - size / 2, size, size);
     }
     ctx.globalAlpha = 1;

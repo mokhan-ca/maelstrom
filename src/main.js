@@ -22,7 +22,7 @@ const viewport = new Viewport(canvas);
 const input = new Input({ pointerTarget: canvas, worldScale: () => viewport.scale });
 const events = new EventAggregator();
 const session = new Session({ best: load('best', 0) });
-const play = new Play({ session, events });
+const play = new Play({ session, events, calm: () => calm.matches });
 const starfield = new Starfield();
 const mixer = new Mixer({ muted: load('muted', false) });
 const sfx = new Sfx(mixer);
@@ -73,23 +73,41 @@ const resume = () => {
 const quit = () => {
   remember();
   music.stop();
+  showBest();
   show('title');
 };
 
 const finish = () => {
-  music.stop();
   remember();
-  $('final-score').textContent = session.score.toLocaleString();
   $('final-wave').textContent = session.wave;
   $('final-best').textContent = session.best.toLocaleString();
   $('new-best').hidden = session.score <= previousBest;
   show('over');
+  countUp($('final-score'), session.score);
 };
+
+const countUp = (element, total, seconds = 0.9) => {
+  if (calm.matches) return (element.textContent = total.toLocaleString());
+  const began = performance.now();
+  const tick = (now) => {
+    const progress = Math.min(1, (now - began) / (seconds * 1000));
+    element.textContent = Math.round(total * (1 - (1 - progress) ** 3)).toLocaleString();
+    if (progress < 1) requestAnimationFrame(tick);
+  };
+  requestAnimationFrame(tick);
+};
+
+const showBest = () => ($('title-best').textContent = session.best ? `Best ${session.best.toLocaleString()}` : '');
 
 const toggleMute = () => {
   const muted = mixer.toggleMute();
   save('muted', muted);
+  showMuted(muted);
+};
+
+const showMuted = (muted) => {
   $('mute').setAttribute('aria-pressed', muted);
+  $('mute').textContent = muted ? '🔇' : '🔊';
 };
 
 const hint = () => {
@@ -108,7 +126,8 @@ document.addEventListener('click', (event) => {
 });
 $('pause').addEventListener('click', () => (scene === 'paused' ? resume() : pause()));
 $('mute').addEventListener('click', toggleMute);
-$('mute').setAttribute('aria-pressed', mixer.muted);
+showMuted(mixer.muted);
+showBest();
 
 window.addEventListener('keydown', () => scene === 'playing' && mixer.resume());
 window.addEventListener('pointerdown', (event) => {
@@ -120,7 +139,11 @@ document.addEventListener('visibilitychange', () => document.hidden && pause());
 
 events.subscribe('laser', () => sfx.laser());
 events.subscribe('kill', () => sfx.explosion());
-events.subscribe('hit', () => sfx.hit());
+events.subscribe('hit', () => {
+  sfx.hit();
+  music.duck();
+});
+events.subscribe('charge', () => sfx.charge());
 events.subscribe('powerup', (type) => {
   sfx.powerup();
   hud.toast({ spread: 'Spread shot', rapid: 'Rapid fire', shield: 'Shield' }[type], 1.2);
@@ -139,12 +162,13 @@ events.subscribe('combo-broken', () => {
 });
 events.subscribe('wave', (wave) => {
   hud.toast(`Wave ${wave}`);
+  music.intensify(wave);
   starfield.speed = 1 + (wave - 1) * 0.15;
 });
 events.subscribe('start', () => (starfield.speed = 1));
 events.subscribe('game-over', () => {
   sfx.gameOver();
-  music.stop();
+  music.fadeOut();
 });
 
 viewport.onResize = ({ width, height }) => starfield.resize(width, height);
@@ -187,6 +211,7 @@ const render = () => {
 const frame = (ctx) => {
   ctx.fillStyle = 'rgba(5, 1, 15, 0.45)';
   ctx.fillRect(0, 0, WORLD.width, WORLD.height);
+  if (!viewport.letterboxed) return;
   ctx.strokeStyle = 'rgba(138, 92, 255, 0.35)';
   ctx.lineWidth = 2;
   ctx.strokeRect(0, 0, WORLD.width, WORLD.height);

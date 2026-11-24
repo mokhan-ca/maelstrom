@@ -19,9 +19,6 @@
   },
   "author": "mo khan <mo@mokhan.ca> (https://www.mokhan.ca)",
   "license": "ISC",
-  "bugs": {
-    "url": "https://github.com/mokhan-ca/maelstrom/issues"
-  },
   "homepage": "https://maelstrom.mokhan.ca",
   "devDependencies": {
     "@eslint/js": "10.0.1",

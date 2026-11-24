@@ -1,7 +1,10 @@
 {
+  "id": "/",
   "name": "Maelstrom",
   "short_name": "Maelstrom",
-  "description": "An ink-brush arcade shooter.",
+  "description": "A hand-drawn ink-brush arcade shooter. Dodge yōkai, outlast the whirlpool and face three bosses.",
+  "lang": "en",
+  "categories": ["games", "entertainment"],
   "start_url": "/",
   "display": "standalone",
   "orientation": "portrait",

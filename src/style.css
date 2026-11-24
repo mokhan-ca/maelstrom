@@ -116,6 +116,9 @@ h2 { font-size: clamp(32px, 9vw, 56px); color: var(--ink); font-style: italic; t
 
 .tagline { margin: 0 0 12px; color: var(--wash); font-style: italic; }
 .controls, .note { margin: 0; font-size: 14px; color: var(--wash); }
+.credit { margin: 8px 0 0; font-size: 14px; color: var(--wash); font-style: italic; }
+.credit a { color: var(--vermilion); text-decoration-thickness: 1px; text-underline-offset: 3px; }
+.credit a:focus-visible { outline: 2px solid var(--ink); outline-offset: 2px; }
 .final { font-size: 22px; margin: 0; }
 .final-best { margin: 0; color: var(--wash); }
 .new-best { margin: 0; color: var(--vermilion); font-size: 22px; font-style: italic; animation: arrive 500ms cubic-bezier(0.3, 1.6, 0.5, 1) 0.9s both; }

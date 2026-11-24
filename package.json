@@ -2,7 +2,7 @@
   "name": "maelstrom",
   "version": "2.0.0",
   "private": true,
-  "description": "An ink-brush arcade shooter for the browser.",
+  "description": "A hand-drawn ink-brush arcade shooter for the browser.",
   "type": "module",
   "scripts": {
     "dev": "vite --host",
@@ -15,12 +15,12 @@
   },
   "repository": {
     "type": "git",
-    "url": "https://github.com/xlgmokha/maelstrom.git"
+    "url": "https://github.com/mokhan-ca/maelstrom.git"
   },
-  "author": "mokhan",
+  "author": "mo khan <mo@mokhan.ca> (https://www.mokhan.ca)",
   "license": "ISC",
   "bugs": {
-    "url": "https://github.com/xlgmokha/maelstrom/issues"
+    "url": "https://github.com/mokhan-ca/maelstrom/issues"
   },
   "homepage": "https://maelstrom.mokhan.ca",
   "devDependencies": {
